@@ -3,14 +3,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from utils.charts import STATUS_COLORS, polish
+from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.config import SATISFACTION_COLS, SATISFACTION_LABELS
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, attrition_summary
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Attrition Overview", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Attrition Overview", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -97,7 +97,7 @@ with col2:
         x="Department",
         y="Rate",
         color="Rate",
-        color_continuous_scale="RdYlGn_r",
+        color_continuous_scale=RATE_SCALE,
         text="Rate",
         labels={"Rate": "Attrition Rate (%)"},
     )
@@ -139,7 +139,7 @@ with col4:
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df))
 
-st.markdown("---")
+section_divider()
 st.subheader("Satisfaction & Engagement Scores: Left vs Stayed")
 
 left_avg = df[df["Attrition"] == 1][SATISFACTION_COLS].mean().round(2)

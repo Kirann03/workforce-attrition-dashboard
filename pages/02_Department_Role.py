@@ -2,13 +2,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from utils.charts import STATUS_COLORS, polish
+from utils.charts import DEEP_NAVY, EXIT_SCALE, RATE_SCALE, STATUS_COLORS, polish, sankey
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Department & Role Analysis", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Department & Role Analysis", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -65,15 +65,15 @@ with col2:
     st.subheader("Department Attrition vs Company Baseline")
     dept_rate = attrition_rate(df_filtered, "Department").sort_values("Rate")
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=dept_rate["Rate"], y=dept_rate["Department"], orientation="h", text=dept_rate["Rate"], marker_color="#FA582D"))
-    fig.add_vline(x=baseline, line_dash="dash", line_color="#D83A22", annotation_text=f"Baseline {baseline:.1f}%")
+    fig.add_trace(go.Bar(x=dept_rate["Rate"], y=dept_rate["Department"], orientation="h", text=dept_rate["Rate"], marker_color=DEEP_NAVY))
+    fig.add_vline(x=baseline, line_dash="dash", line_color=DEEP_NAVY, annotation_text=f"Baseline {baseline:.1f}%")
     fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
     polish(fig, 380)
     fig.update_layout(xaxis_title="Attrition Rate (%)", yaxis_title="")
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df_filtered))
 
-st.markdown("---")
+section_divider("Heatmaps")
 st.subheader("Job Role Attrition Heatmaps")
 role_dept = df_filtered.groupby(["JobRole", "Department"], observed=False).agg(
     Total=("Attrition", "count"),
@@ -84,16 +84,28 @@ role_dept["Rate"] = (role_dept["Left"] / role_dept["Total"] * 100).fillna(0).rou
 tab_rate, tab_count = st.tabs(["Attrition Rate", "Exit Count"])
 with tab_rate:
     pivot = role_dept.pivot(index="JobRole", columns="Department", values="Rate").fillna(0)
-    fig = px.imshow(pivot, color_continuous_scale="RdYlGn_r", text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
+    fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
     polish(fig, 430)
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df_filtered))
 with tab_count:
     pivot_count = role_dept.pivot(index="JobRole", columns="Department", values="Left").fillna(0)
-    fig = px.imshow(pivot_count, color_continuous_scale="Reds", text_auto=True, aspect="auto", labels=dict(color="Exits"))
+    fig = px.imshow(pivot_count, color_continuous_scale=EXIT_SCALE, text_auto=True, aspect="auto", labels=dict(color="Exits"))
     polish(fig, 430)
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df_filtered))
+
+section_divider("Exit Flow")
+st.subheader("Department to Role Exit Flow")
+exit_flow = role_dept[role_dept["Left"] > 0].copy()
+departments_nodes = exit_flow["Department"].drop_duplicates().tolist()
+roles_nodes = exit_flow["JobRole"].drop_duplicates().tolist()
+labels = departments_nodes + roles_nodes
+sources = exit_flow["Department"].map({name: idx for idx, name in enumerate(labels)}).tolist()
+targets = exit_flow["JobRole"].map({name: idx for idx, name in enumerate(labels)}).tolist()
+fig = sankey(labels, sources, targets, exit_flow["Left"].tolist(), title="Department to Role Exit Flow")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_filtered))
 
 hotspot = role_dept[role_dept["Total"] >= 10].sort_values("Rate", ascending=False).head(1)
 if not hotspot.empty:
@@ -108,7 +120,7 @@ if not hotspot.empty:
         unsafe_allow_html=True,
     )
 
-st.markdown("---")
+section_divider("Role Comparison")
 st.subheader("Role Comparison: Volume vs Attrition Rate")
 fig = px.scatter(
     role_dept,
@@ -121,7 +133,7 @@ fig = px.scatter(
     labels={"Total": "Total Employees", "Rate": "Attrition Rate (%)", "Left": "Employees Left"},
 )
 fig.update_traces(textposition="top center")
-polish(fig, 480)
+polish(fig, 480, title="Role Comparison: Volume vs Attrition Rate")
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_filtered))
 

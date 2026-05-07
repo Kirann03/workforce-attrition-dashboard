@@ -1,300 +1,632 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
-PAN_RED = "#FA582D"
-PAN_DARK = "#07131F"
-PAN_NAVY = "#0E2235"
-PAN_TEXT = "#17202A"
-PAN_MUTED = "#607083"
-PAN_BORDER = "#D8E0EA"
-PAN_BG = "#F4F7FB"
+PAN_RED = "#C9BDAE"
+PAN_DARK = "#313A55"
+PAN_NAVY = "#82A9C7"
+PAN_TEXT = "#1D2638"
+PAN_MUTED = "#5E6B7A"
+PAN_BORDER = "#C9D2D6"
+PAN_BG = "#F0F1DF"
 
 
 def apply_theme():
+    st.markdown(
+        """
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f"""
         <style>
         :root {{
             --pan-red: {PAN_RED};
+            --pan-accent: {PAN_RED};
             --pan-dark: {PAN_DARK};
             --pan-navy: {PAN_NAVY};
-            --pan-text: #17202A;
-            --pan-muted: #607083;
-            --pan-border: #D8E0EA;
-            --pan-bg: #F4F7FB;
+            --pan-blue: #82A9C7;
+            --pan-cyan: #ACCCD8;
+            --pan-ivory: #F0F1DF;
+            --pan-sand: #F0E2CD;
+            --pan-stone: #C9BDAE;
+            --pan-text: {PAN_TEXT};
+            --pan-muted: {PAN_MUTED};
+            --pan-border: {PAN_BORDER};
+            --pan-bg: {PAN_BG};
             --pan-surface: #FFFFFF;
-            --pan-sidebar: #FFFFFF;
-            --pan-sidebar-text: #17202A;
-            --pan-shadow: rgba(14,34,53,0.06);
-            --pan-soft-blue: #EAF3FF;
+            --pan-surface-soft: #F7F4EA;
+            --pan-sidebar: #F0F1DF;
+            --pan-hover: #E4E7DC;
+            --pan-chip-bg: #F0E2CD;
+            --pan-chip-border: #D8C9B7;
+            --pan-chip-text: #313A55;
+            --pan-insight-bg: #EEF5F7;
+            --pan-alert-bg: #F0E2CD;
+            --pan-green: #476F67;
+            --pan-amber: #8A6F52;
+            --pan-shadow: 0 18px 42px rgba(49, 58, 85, 0.14);
+            --pan-soft-shadow: 0 8px 22px rgba(49, 58, 85, 0.09);
         }}
 
-        @media (prefers-color-scheme: dark) {{
-            :root {{
-                --pan-text: #EAF0F7;
-                --pan-muted: #AAB7C6;
-                --pan-border: #26384A;
-                --pan-bg: #07131F;
-                --pan-surface: #0E2235;
-                --pan-sidebar: #07131F;
-                --pan-sidebar-text: #EAF0F7;
-                --pan-shadow: rgba(0,0,0,0.25);
-                --pan-soft-blue: #102A44;
-            }}
+        html, body, .stApp, .stMarkdown, .stMarkdown p, .stMarkdown li, .stMarkdown td,
+        .stMarkdown th, .stMetric, label, input, textarea, select, button {{
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            letter-spacing: 0;
+        }}
+
+        [class*="material-symbols"],
+        [class*="material-icons"],
+        .material-symbols-rounded,
+        .material-symbols-outlined,
+        .material-icons {{
+            font-family: "Material Symbols Rounded", "Material Symbols Outlined", "Material Icons" !important;
         }}
 
         .stApp {{
-            background: var(--pan-bg);
+            background:
+                radial-gradient(circle at 85% -8%, rgba(172, 204, 216, 0.45), transparent 28rem),
+                radial-gradient(circle at 9% 12%, rgba(240, 226, 205, 0.42), transparent 24rem),
+                linear-gradient(135deg, #F7F4EA 0%, #F0F1DF 44%, #E7ECE8 100%);
             color: var(--pan-text);
         }}
 
-        [data-testid="stSidebar"] {{
-            background: var(--pan-sidebar);
-            border-right: 1px solid var(--pan-border);
-        }}
-
-        [data-testid="stSidebar"] * {{
-            color: var(--pan-sidebar-text) !important;
-        }}
-
-        [data-testid="stSidebar"] hr {{
-            border-color: var(--pan-border);
-        }}
-
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-        [data-testid="stSidebar"] label {{
-            color: var(--pan-muted) !important;
-        }}
-
         .block-container {{
-            padding-top: 2rem;
+            max-width: 1440px;
+            padding-top: 1.25rem;
             padding-bottom: 3rem;
-            max-width: 1420px;
+        }}
+
+        #MainMenu,
+        footer,
+        [data-testid="stDecoration"] {{
+            display: none !important;
+            visibility: hidden !important;
+        }}
+
+        header[data-testid="stHeader"] {{
+            background: linear-gradient(90deg, rgba(49, 58, 85, 0.98), rgba(130, 169, 199, 0.92)) !important;
+            border-bottom: 1px solid rgba(178, 193, 201, 0.35);
+            box-shadow: 0 8px 24px rgba(49, 58, 85, 0.12);
+        }}
+
+        [data-testid="stToolbar"] {{
+            color: #FFFFFF;
+        }}
+
+        [data-testid="stToolbar"] * {{
+            color: #FFFFFF !important;
         }}
 
         h1, h2, h3 {{
             color: var(--pan-text);
-            letter-spacing: 0;
+            font-weight: 700 !important;
         }}
 
         h1 {{
-            font-size: 2.05rem !important;
-            font-weight: 760 !important;
+            font-size: 1.85rem !important;
+            line-height: 1.18;
         }}
 
-        h2, h3 {{
-            font-weight: 720 !important;
+        h2 {{
+            font-size: 1.25rem !important;
+            font-weight: 600 !important;
         }}
 
+        h3 {{
+            border-left: 4px solid var(--pan-navy);
+            color: var(--pan-text);
+            font-size: 1.03rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em;
+            margin: 1.15rem 0 0.85rem 0 !important;
+            padding-left: 0.65rem;
+            text-transform: none;
+        }}
+
+        .pan-panel h3,
+        .pan-module h3 {{
+            border-left: 0;
+            margin-top: 0 !important;
+            padding-left: 0;
+        }}
+
+        /* Sidebar */
+        [data-testid="stSidebar"] {{
+            background:
+                linear-gradient(180deg, rgba(172, 204, 216, 0.34), transparent 17rem),
+                var(--pan-sidebar);
+            border-right: 1px solid var(--pan-border);
+            box-shadow: 8px 0 30px rgba(49, 58, 85, 0.08);
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] * {{
+            font-family: "Material Symbols Rounded", "Material Symbols Outlined", "Material Icons" !important;
+        }}
+
+        [data-testid="stSidebar"] * {{
+            color: var(--pan-text) !important;
+        }}
+
+        [data-testid="stSidebar"] hr {{
+            border-color: var(--pan-border);
+            margin: 1rem 0;
+        }}
+
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] p {{
+            color: var(--pan-muted) !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] > div {{
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--pan-border);
+            border-radius: 9px;
+            box-shadow: 0 4px 12px rgba(49, 58, 85, 0.06);
+            min-height: 2.45rem;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] input {{
+            color: var(--pan-text) !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="tag"] {{
+            background: linear-gradient(135deg, var(--pan-dark), #4B5877) !important;
+            border-radius: 7px !important;
+            color: #FFFFFF !important;
+            font-weight: 600 !important;
+            max-width: 178px;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="tag"] span,
+        [data-testid="stSidebar"] [data-baseweb="tag"] p {{
+            color: #FFFFFF !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="tag"] svg {{
+            fill: #FFFFFF !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] svg {{
+            fill: var(--pan-dark) !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] [data-baseweb="tag"] svg {{
+            fill: #FFFFFF !important;
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="slider"] div {{
+            color: var(--pan-text);
+        }}
+
+        [data-testid="stSidebar"] div[data-testid="stMetric"] {{
+            background: #FFFFFF;
+            border-color: var(--pan-border);
+        }}
+
+        [data-testid="stSidebar"] a {{
+            border-radius: 8px;
+            color: var(--pan-text) !important;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }}
+
+        [data-testid="stSidebar"] a:hover {{
+            background: var(--pan-hover);
+            color: var(--pan-red) !important;
+        }}
+
+        .pan-sidebar-brand {{
+            background:
+                linear-gradient(135deg, rgba(49, 58, 85, 0.98), rgba(130, 169, 199, 0.88));
+            border: 1px solid rgba(240, 226, 205, 0.34);
+            border-radius: 10px;
+            padding: 0.95rem 1rem;
+            margin-bottom: 0.9rem;
+            box-shadow: var(--pan-soft-shadow);
+        }}
+
+        .pan-brand-kicker {{
+            color: #F0E2CD;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }}
+
+        .pan-brand-title {{
+            color: #FFFFFF;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-top: 0.2rem;
+        }}
+
+        .pan-brand-sub {{
+            color: #EEF2E4;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin-top: 0.35rem;
+        }}
+
+        .pan-sidebar-snapshot {{
+            background: var(--pan-surface-soft);
+            border: 1px solid var(--pan-border);
+            border-radius: 10px;
+            padding: 0.8rem 0.9rem;
+        }}
+
+        .pan-sidebar-snapshot-title {{
+            color: var(--pan-muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }}
+
+        .pan-snapshot-row {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--pan-border);
+            padding: 0.32rem 0;
+            gap: 0.75rem;
+        }}
+
+        .pan-snapshot-row:last-child {{
+            border-bottom: 0;
+        }}
+
+        .pan-snapshot-label {{
+            color: var(--pan-muted);
+            font-size: 0.8rem;
+        }}
+
+        .pan-snapshot-value {{
+            color: var(--pan-text);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-align: right;
+        }}
+
+        .pan-snapshot-value.alert {{
+            color: var(--pan-red);
+        }}
+
+        .pan-snapshot-value.good {{
+            color: var(--pan-green);
+        }}
+
+        /* Cards and Streamlit primitives */
         div[data-testid="stMetric"] {{
             background: var(--pan-surface);
             border: 1px solid var(--pan-border);
-            border-left: 4px solid var(--pan-red);
-            border-radius: 8px;
-            padding: 1rem 1.1rem;
-            box-shadow: 0 10px 24px var(--pan-shadow);
+            border-radius: 10px;
+            padding: 0.95rem 1.05rem;
+            box-shadow: var(--pan-soft-shadow);
+        }}
+
+        div[data-testid="stMetric"]::before {{
+            content: "";
+            display: block;
+            height: 3px;
+            width: 38px;
+            background: linear-gradient(90deg, var(--pan-dark), var(--pan-accent));
+            border-radius: 999px;
+            margin-bottom: 0.65rem;
+        }}
+
+        .pan-topbar {{
+            align-items: center;
+            background:
+                linear-gradient(135deg, rgba(49, 58, 85, 0.98), rgba(130, 169, 199, 0.92));
+            border: 1px solid rgba(178, 193, 201, 0.34);
+            border-radius: 12px;
+            box-shadow: var(--pan-shadow);
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.72rem 1rem;
+        }}
+
+        .pan-topbar-title {{
+            color: #FFFFFF;
+            font-size: 0.94rem;
+            font-weight: 700;
+        }}
+
+        .pan-topbar-subtitle {{
+            color: #F0E2CD;
+            font-size: 0.76rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }}
+
+        .pan-topbar-meta {{
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            justify-content: flex-end;
+        }}
+
+        .pan-topbar-pill {{
+            background: rgba(240, 241, 223, 0.16);
+            border: 1px solid rgba(240, 226, 205, 0.32);
+            border-radius: 999px;
+            color: #FFFFFF;
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 0.25rem 0.62rem;
+        }}
+
+        @media (max-width: 900px) {{
+            .pan-topbar {{
+                align-items: flex-start;
+                flex-direction: column;
+            }}
+
+            .pan-topbar-meta {{
+                justify-content: flex-start;
+            }}
         }}
 
         div[data-testid="stMetricLabel"] p {{
             color: var(--pan-muted);
-            font-size: 0.83rem;
-            font-weight: 700;
+            font-size: 0.74rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.04em;
         }}
 
         div[data-testid="stMetricValue"] {{
             color: var(--pan-text);
-            font-weight: 760;
+            font-size: 1.55rem !important;
+            font-weight: 700;
+        }}
+
+        div[data-testid="stPlotlyChart"],
+        [data-testid="stDataFrame"],
+        [data-testid="stExpander"] {{
+            background: var(--pan-surface);
+            border: 1px solid var(--pan-border);
+            border-radius: 10px;
+            box-shadow: var(--pan-soft-shadow);
+            overflow: hidden;
         }}
 
         div[data-testid="stPlotlyChart"] {{
-            background: var(--pan-surface);
-            border: 1px solid var(--pan-border);
-            border-radius: 8px;
-            padding: 0.75rem;
-            box-shadow: 0 10px 24px var(--pan-shadow);
+            padding: 0.95rem 1rem 0.65rem;
         }}
 
-        .pan-hero {{
-            background: linear-gradient(135deg, #07131F 0%, #0E2235 58%, #173650 100%);
-            border: 1px solid rgba(255,255,255,0.12);
+        div[data-testid="stPlotlyChart"] svg {{
             border-radius: 8px;
-            color: #FFFFFF;
-            padding: 2rem 2.1rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 18px 42px rgba(7,19,31,0.18);
+        }}
+
+        [data-testid="stTabs"] button {{
+            font-size: 0.86rem;
+            font-weight: 600;
+        }}
+
+        [data-testid="stAlert"] {{
+            border-radius: 10px;
+            border: 1px solid var(--pan-border);
+            background: var(--pan-alert-bg) !important;
+            color: var(--pan-text);
+            box-shadow: var(--pan-soft-shadow);
+        }}
+
+        [data-testid="stAlert"] p {{
+            color: var(--pan-text);
+        }}
+
+        div[data-baseweb="notification"] {{
+            background: var(--pan-alert-bg) !important;
+            border: 1px solid var(--pan-border) !important;
+            color: var(--pan-text) !important;
+        }}
+
+        table {{
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--pan-surface);
+            border: 1px solid var(--pan-border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--pan-soft-shadow);
+        }}
+
+        th {{
+            background: rgba(85, 198, 214, 0.12);
+            color: var(--pan-text);
+            font-weight: 700;
+            padding: 0.75rem 0.85rem;
+            border-bottom: 1px solid var(--pan-border);
+        }}
+
+        td {{
+            color: var(--pan-text);
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid var(--pan-border);
+        }}
+
+        tr:last-child td {{
+            border-bottom: 0;
+        }}
+
+        /* Custom sections */
+        .pan-hero {{
+            background:
+                radial-gradient(circle at 95% 0%, rgba(240, 226, 205, 0.24), transparent 17rem),
+                linear-gradient(135deg, rgba(49, 58, 85, 0.98), rgba(69, 89, 118, 0.96) 52%, rgba(130, 169, 199, 0.88)),
+                var(--pan-dark);
+            border: 1px solid rgba(178, 193, 201, 0.42);
+            border-left: 5px solid var(--pan-accent);
+            border-radius: 12px;
+            padding: 1.55rem 1.75rem;
+            margin-bottom: 1.15rem;
+            box-shadow: var(--pan-shadow);
         }}
 
         .pan-hero h1 {{
-            color: #FFFFFF;
-            margin: 0.2rem 0 0.65rem 0;
-            font-size: 2.45rem !important;
+            color: #FFFFFF !important;
+            font-size: 2rem !important;
+            margin: 0.28rem 0 0.55rem;
         }}
 
         .pan-hero p {{
-            color: #C7D2DE;
-            max-width: 900px;
+            color: #F5F1E5;
             line-height: 1.6;
             margin: 0;
+            max-width: 1120px;
+            font-size: 0.96rem;
         }}
 
         .pan-eyebrow {{
-            color: #FFB29B;
-            font-weight: 760;
-            letter-spacing: 0.08em;
+            color: #F0E2CD;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
             text-transform: uppercase;
-            font-size: 0.78rem;
         }}
 
         .pan-page-head {{
             background: var(--pan-surface);
             border: 1px solid var(--pan-border);
-            border-radius: 8px;
-            padding: 1.25rem 1.35rem;
+            border-left: 4px solid var(--pan-accent);
+            border-radius: 10px;
+            padding: 1.05rem 1.25rem;
             margin-bottom: 1rem;
-            box-shadow: 0 10px 24px var(--pan-shadow);
+            box-shadow: var(--pan-soft-shadow);
         }}
 
         .pan-page-head h1 {{
-            margin: 0.15rem 0 0.35rem 0;
+            font-size: 1.45rem !important;
+            margin: 0.15rem 0 0.3rem;
         }}
 
         .pan-page-head p {{
-            margin: 0;
             color: var(--pan-muted);
+            font-size: 0.91rem;
             line-height: 1.55;
+            margin: 0;
         }}
 
         .pan-chip-row {{
             display: flex;
-            gap: 0.55rem;
             flex-wrap: wrap;
-            margin-top: 1rem;
+            gap: 0.45rem;
+            margin-top: 0.75rem;
         }}
 
         .pan-chip {{
-            border: 1px solid rgba(250,88,45,0.24);
-            background: rgba(250,88,45,0.08);
-            color: var(--pan-text);
+            background: var(--pan-chip-bg);
+            border: 1px solid var(--pan-chip-border);
             border-radius: 999px;
-            padding: 0.34rem 0.68rem;
-            font-size: 0.78rem;
-            font-weight: 700;
+            color: var(--pan-chip-text);
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 0.25rem 0.62rem;
+        }}
+
+        .pan-panel,
+        .pan-module,
+        .pan-insight,
+        .pan-alert {{
+            background: var(--pan-surface);
+            border: 1px solid var(--pan-border);
+            border-radius: 10px;
+            box-shadow: var(--pan-soft-shadow);
         }}
 
         .pan-panel {{
-            background: var(--pan-surface);
-            border: 1px solid var(--pan-border);
-            border-radius: 8px;
-            padding: 1.15rem 1.25rem;
-            box-shadow: 0 10px 24px var(--pan-shadow);
             height: 100%;
+            padding: 1rem 1.1rem;
         }}
 
-        .pan-panel h3 {{
-            margin-top: 0;
-            font-size: 1.02rem !important;
-        }}
-
-        .pan-panel p, .pan-panel li {{
+        .pan-panel p,
+        .pan-panel li {{
             color: var(--pan-muted);
             line-height: 1.55;
         }}
 
         .pan-module {{
-            background: var(--pan-surface);
-            border: 1px solid var(--pan-border);
-            border-top: 3px solid var(--pan-red);
-            border-radius: 8px;
-            padding: 1rem;
-            min-height: 132px;
-            box-shadow: 0 10px 24px var(--pan-shadow);
+            min-height: 126px;
+            padding: 0.95rem 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }}
+
+        .pan-module:hover {{
+            transform: translateY(-2px);
+            box-shadow: var(--pan-shadow);
         }}
 
         .pan-module strong {{
             color: var(--pan-text);
             display: block;
+            font-size: 0.94rem;
             margin-bottom: 0.35rem;
         }}
 
         .pan-module span {{
             color: var(--pan-muted);
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             line-height: 1.45;
         }}
 
-        .pan-sidebar-brand {{
-            border: 1px solid var(--pan-border);
-            border-radius: 8px;
-            padding: 0.95rem;
-            background: var(--pan-surface);
-            margin-bottom: 0.8rem;
-        }}
-
-        .pan-sidebar-brand strong {{
-            color: var(--pan-sidebar-text);
-        }}
-
-        .pan-sidebar-brand span {{
-            color: var(--pan-muted);
-            font-size: 0.86rem;
-        }}
-
-        .pan-sidebar-kicker {{
-            color: var(--pan-red) !important;
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }}
-
-        .pan-sidebar-title {{
-            color: var(--pan-sidebar-text) !important;
-            font-size: 1rem;
-            font-weight: 760;
-            line-height: 1.25;
-            margin-top: 0.2rem;
-        }}
-
         .pan-insight {{
-            background: var(--pan-soft-blue);
-            border: 1px solid #B8D7F5;
-            border-left: 4px solid #335C81;
-            border-radius: 8px;
-            padding: 1rem 1.1rem;
-            margin: 0.5rem 0 1rem 0;
+            background: var(--pan-insight-bg);
+            border-left: 4px solid var(--pan-navy);
             color: var(--pan-text);
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0.55rem 0 0.9rem;
+            padding: 0.85rem 1rem;
+        }}
+
+        .pan-alert {{
+            background: var(--pan-alert-bg);
+            border-left: 4px solid var(--pan-accent);
+            color: var(--pan-text);
+            font-size: 0.9rem;
+            margin: 0.55rem 0 0.9rem;
+            padding: 0.85rem 1rem;
         }}
 
         .pan-risk-badge {{
             border-radius: 999px;
             color: #FFFFFF;
             display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 760;
-            padding: 0.2rem 0.55rem;
-            text-align: center;
-            white-space: nowrap;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 0.18rem 0.55rem;
         }}
 
         .pan-divider {{
             border-top: 1px solid var(--pan-border);
-            margin: 1.5rem 0 0.9rem 0;
+            margin: 1.35rem 0 0.85rem;
             position: relative;
         }}
 
         .pan-divider span {{
             background: var(--pan-bg);
             color: var(--pan-muted);
-            font-size: 0.78rem;
-            font-weight: 760;
-            letter-spacing: 0.08em;
-            padding-right: 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            padding-right: 0.7rem;
             position: relative;
             text-transform: uppercase;
-            top: -0.7rem;
+            top: -0.65rem;
         }}
         </style>
         """,
@@ -303,12 +635,35 @@ def apply_theme():
 
 
 def render_sidebar():
+    from utils.data_loader import load_data
+    from utils.kpis import attrition_rate, attrition_summary
+
+    df = load_data()
+    summary = attrition_summary(df)
+    top_dept = attrition_rate(df, "Department").sort_values("Rate", ascending=False).iloc[0]
+    st.markdown(
+        f"""
+        <div class="pan-topbar">
+            <div>
+                <div class="pan-topbar-subtitle">Palo Alto Networks | Workforce Analytics</div>
+                <div class="pan-topbar-title">Attrition Intelligence Command Center</div>
+            </div>
+            <div class="pan-topbar-meta">
+                <span class="pan-topbar-pill">{summary['total']:,} employees</span>
+                <span class="pan-topbar-pill">{summary['rate']}% attrition</span>
+                <span class="pan-topbar-pill">Hotspot: {top_dept['Department']}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.sidebar.markdown(
         """
         <div class="pan-sidebar-brand">
-            <div class="pan-sidebar-kicker">Palo Alto Networks</div>
-            <div class="pan-sidebar-title">Workforce Intelligence</div>
-            <span>Attrition patterns, risk hotspots, and retention signals for HR leadership.</span>
+            <div class="pan-brand-kicker">Palo Alto Networks</div>
+            <div class="pan-brand-title">Workforce Intelligence</div>
+            <div class="pan-brand-sub">Attrition analytics for HR leadership</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -320,6 +675,21 @@ def render_sidebar():
     st.sidebar.page_link("pages/04_Tenure_Workload.py", label="Tenure & Workload")
     st.sidebar.page_link("pages/05_Risk_Score.py", label="Risk Score")
     st.sidebar.page_link("pages/06_Compensation.py", label="Compensation")
+    st.sidebar.page_link("pages/07_Executive_Summary.py", label="Executive Summary")
+    st.sidebar.markdown("---")
+    st.sidebar.markdown(
+        f"""
+        <div class="pan-sidebar-snapshot">
+            <div class="pan-sidebar-snapshot-title">Live Snapshot</div>
+            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Headcount</span><span class="pan-snapshot-value">{summary['total']:,}</span></div>
+            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Attrition</span><span class="pan-snapshot-value alert">{summary['rate']}%</span></div>
+            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Exited</span><span class="pan-snapshot-value">{summary['left']:,}</span></div>
+            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Retained</span><span class="pan-snapshot-value good">{summary['stayed']:,}</span></div>
+            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Hotspot</span><span class="pan-snapshot-value">{top_dept['Department']}</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.sidebar.markdown("---")
 
 
@@ -365,43 +735,46 @@ def insight_card(title: str, body: str, icon: str = "Insight"):
     )
 
 
+def alert_card(body: str):
+    st.markdown(f'<div class="pan-alert">{body}</div>', unsafe_allow_html=True)
+
+
 def risk_badge(rate: float, baseline: float) -> str:
     if rate > baseline * 1.5:
-        color = "#D83A22"
+        color = "#313A55"
         label = "HIGH RISK"
     elif rate > baseline * 1.1:
-        color = "#F29D38"
+        color = "#82A9C7"
         label = "ELEVATED"
     else:
-        color = "#1A9A74"
+        color = "#476F67"
         label = "BELOW BASE"
     return f'<span class="pan-risk-badge" style="background:{color};">{label}</span>'
 
 
 def data_quality_banner(df: pd.DataFrame):
     nulls = int(df.isna().sum().sum())
-    duplicate_count = 0
-    if "EmployeeNumber" in df.columns:
-        duplicate_count = int(df["EmployeeNumber"].duplicated().sum())
+    duplicate_count = int(df["EmployeeNumber"].duplicated().sum()) if "EmployeeNumber" in df.columns else 0
     attrition_ok = pd.api.types.is_integer_dtype(df["Attrition"])
     if nulls == 0 and duplicate_count == 0 and attrition_ok:
-        st.success(f"Data health check passed: {len(df):,} records, {len(df.columns)} fields, no missing values detected.")
+        st.success(f"Data validated: {len(df):,} records, {len(df.columns)} fields, no missing values.")
     else:
         st.warning(
-            f"Data health check: {nulls:,} missing values, {duplicate_count:,} duplicate employee IDs, "
+            f"Data quality: {nulls:,} missing values, {duplicate_count:,} duplicate employee IDs, "
             f"Attrition integer type: {attrition_ok}."
         )
 
 
-def section_divider(label: str):
-    st.markdown(
-        f'<div class="pan-divider"><span>{label}</span></div>',
-        unsafe_allow_html=True,
-    )
+def section_divider(label: str = ""):
+    label_html = f"<span>{label}</span>" if label else "<span></span>"
+    st.markdown(f'<div class="pan-divider">{label_html}</div>', unsafe_allow_html=True)
 
 
-def chart_caption(n: int):
-    st.caption(f"Source: Palo Alto Networks HR Dataset | n = {n:,}")
+def chart_caption(n: int, suffix: str = ""):
+    caption = f"Source: Palo Alto Networks HR Dataset | n = {n:,}"
+    if suffix:
+        caption += f" | {suffix}"
+    st.caption(caption)
 
 
 def download_filtered_data(df: pd.DataFrame, filename: str):

@@ -2,14 +2,14 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from utils.charts import STATUS_COLORS, polish
+from utils.charts import RATE_SCALE, STATUS_COLORS, polish, waterfall
 from utils.config import PROMOTION_STAGNATION_BINS, PROMOTION_STAGNATION_LABELS
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, attrition_with_ci
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, insight_card, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Tenure & Workload Analysis", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Tenure & Workload Analysis", page_icon="⏱️", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -64,7 +64,7 @@ c1, c2 = st.columns([1, 1])
 with c1:
     st.subheader("Attrition by Tenure Bucket")
     tb = attrition_rate(df_f, "TenureBucket")
-    fig = px.bar(tb, x="TenureBucket", y="Rate", color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+    fig = px.bar(tb, x="TenureBucket", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
@@ -95,14 +95,14 @@ with c3:
 with c4:
     st.subheader("Business Travel vs Attrition")
     bt_df = attrition_rate(df_f, "BusinessTravel")
-    fig = px.bar(bt_df, x="BusinessTravel", y="Rate", color="Rate", color_continuous_scale="Oranges", text="Rate")
+    fig = px.bar(bt_df, x="BusinessTravel", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df_f))
 
-st.markdown("---")
+section_divider("Stagnation Risk")
 st.subheader("Stagnation x Tenure Heatmap")
 stagnation = df_f.copy()
 stagnation["PromotionBand"] = pd.cut(
@@ -113,23 +113,36 @@ stagnation["PromotionBand"] = pd.cut(
 heat = stagnation.groupby(["TenureBucket", "PromotionBand"], observed=False).agg(Total=("Attrition", "count"), Left=("Attrition", "sum")).reset_index()
 heat["Rate"] = (heat["Left"] / heat["Total"] * 100).fillna(0).round(1)
 pivot = heat.pivot(index="TenureBucket", columns="PromotionBand", values="Rate").fillna(0)
-fig = px.imshow(pivot, color_continuous_scale="RdYlGn_r", text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
-polish(fig, 420)
+fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
+polish(fig, 420, title="Stagnation x Tenure Heatmap")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_f))
+insight_card("Key Observation", "Promotion stagnation is most actionable where high attrition overlaps with longer tenure buckets.")
+
+section_divider("Workload Lift")
+st.subheader("Attrition Lift Waterfall")
+stress_rate = stress_df[stress_df["WorkloadStress"] == 1]["Attrition"].mean() * 100 if (stress_df["WorkloadStress"] == 1).any() else 0
+rest_rate = stress_df[stress_df["WorkloadStress"] == 0]["Attrition"].mean() * 100 if (stress_df["WorkloadStress"] == 0).any() else 0
+fig = waterfall(
+    ["Baseline", "Overtime Lift", "Stress Cohort Lift"],
+    [df_f["Attrition"].mean() * 100, ot_rate - non_ot_rate, stress_rate - rest_rate],
+    title="Workload-Related Attrition Lift",
+)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
 
 st.subheader("Distance from Home vs Attrition with Confidence Intervals")
 db = attrition_with_ci(df_f, "DistanceBand")
-fig = px.bar(db, x="DistanceBand", y="Rate", error_y=db["CI_Upper"] - db["Rate"], error_y_minus=db["Rate"] - db["CI_Lower"], color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+fig = px.bar(db, x="DistanceBand", y="Rate", error_y=db["CI_Upper"] - db["Rate"], error_y_minus=db["Rate"] - db["CI_Lower"], color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
 fig.update_traces(texttemplate="%{text}%", textposition="outside")
-polish(fig, 380)
+polish(fig, 380, title="Distance from Home vs Attrition with Confidence Intervals")
 fig.update_layout(coloraxis_showscale=False, yaxis_title="Attrition Rate (%)")
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
 
 st.subheader("Promotion Stagnation vs Attrition")
 fig = px.box(df_f, x="Attrition_Label", y="YearsSinceLastPromotion", color="Attrition_Label", color_discrete_map=STATUS_COLORS, points="all", notched=True)
-polish(fig, 380)
+polish(fig, 380, title="Promotion Stagnation vs Attrition")
 fig.update_layout(showlegend=False)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))

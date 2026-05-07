@@ -9,7 +9,7 @@ from utils.theme import apply_theme, data_quality_banner, hero, render_sidebar, 
 
 st.set_page_config(
     page_title="PAN Workforce Intelligence",
-    page_icon="📊",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -81,9 +81,10 @@ modules = [
     ("Tenure & Workload", "Overtime, travel, promotion stagnation, distance confidence intervals, and key findings.", "pages/04_Tenure_Workload.py"),
     ("Risk Scoring Engine", "Balanced ML model, risk tiers, performance metrics, feature drivers, and intervention matrix.", "pages/05_Risk_Score.py"),
     ("Compensation Analysis", "Pay equity, hike-performance patterns, stock-option gaps, and salary-band risk.", "pages/06_Compensation.py"),
+    ("Executive Summary", "Print-ready leadership brief with KPIs, findings, charts, and recommended priority actions.", "pages/07_Executive_Summary.py"),
 ]
 
-rows = [st.columns([1, 1, 1]), st.columns([1, 1, 1])]
+rows = [st.columns([1, 1, 1]), st.columns([1, 1, 1]), st.columns([1, 1, 1])]
 for idx, (title, body, page) in enumerate(modules):
     with rows[idx // 3][idx % 3]:
         st.markdown(

@@ -1,13 +1,13 @@
 import plotly.express as px
 import streamlit as st
 
-from utils.charts import STATUS_COLORS, polish
+from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Compensation Analysis", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Compensation Analysis", page_icon="💰", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -77,7 +77,7 @@ c3, c4 = st.columns([1, 1])
 with c3:
     st.subheader("Income Band Attrition Rate")
     ib = attrition_rate(df, "IncomeBand")
-    fig = px.bar(ib, x="IncomeBand", y="Rate", color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+    fig = px.bar(ib, x="IncomeBand", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
@@ -88,14 +88,14 @@ with c4:
     st.subheader("Stock Options vs Attrition")
     so = attrition_rate(df, "StockOptionLevel")
     so["StockOptionLevel"] = so["StockOptionLevel"].astype(str)
-    fig = px.bar(so, x="StockOptionLevel", y="Rate", color="Rate", color_continuous_scale="Blues_r", text="Rate", labels={"StockOptionLevel": "Stock Option Level"})
+    fig = px.bar(so, x="StockOptionLevel", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate", labels={"StockOptionLevel": "Stock Option Level"})
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df))
 
-st.markdown("---")
+section_divider()
 st.subheader("Income Equity by Tenure, Level, and Department")
 equity_df = df.copy()
 equity_df["JobLevel"] = equity_df["JobLevel"].astype(str)

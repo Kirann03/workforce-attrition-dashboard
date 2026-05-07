@@ -1,13 +1,13 @@
 import plotly.express as px
 import streamlit as st
 
-from utils.charts import STATUS_COLORS, polish
+from utils.charts import CALM_CYAN, DEEP_NAVY, RATE_SCALE, STATUS_COLORS, polish
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, chi_square_test
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Demographic Analysis", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Demographic Analysis", page_icon="👥", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -57,7 +57,7 @@ c1, c2 = st.columns([1, 1])
 with c1:
     st.subheader("Attrition by Age Group")
     ag = attrition_rate(df_f, "AgeGroup")
-    fig = px.bar(ag, x="AgeGroup", y="Rate", color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+    fig = px.bar(ag, x="AgeGroup", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
@@ -68,7 +68,7 @@ with c1:
 with c2:
     st.subheader("Attrition by Gender")
     gg = attrition_rate(df_f, "Gender")
-    fig = px.bar(gg, x="Gender", y="Rate", color="Gender", color_discrete_sequence=["#335C81", "#D83A22"], text="Rate")
+    fig = px.bar(gg, x="Gender", y="Rate", color="Gender", color_discrete_sequence=[DEEP_NAVY, CALM_CYAN], text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(showlegend=False)
@@ -80,7 +80,7 @@ c3, c4 = st.columns([1, 1])
 with c3:
     st.subheader("Attrition by Marital Status")
     ms = attrition_rate(df_f, "MaritalStatus")
-    fig = px.bar(ms, x="MaritalStatus", y="Rate", color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+    fig = px.bar(ms, x="MaritalStatus", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
@@ -91,7 +91,7 @@ with c3:
 with c4:
     st.subheader("Attrition by Education Level")
     edu = attrition_rate(df_f, "EducationLabel")
-    fig = px.bar(edu, x="EducationLabel", y="Rate", color="Rate", color_continuous_scale="Blues_r", text="Rate")
+    fig = px.bar(edu, x="EducationLabel", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
     fig.update_traces(texttemplate="%{text}%", textposition="outside")
     polish(fig, 360)
     fig.update_layout(coloraxis_showscale=False)
@@ -99,10 +99,10 @@ with c4:
     sig_caption("EducationLabel")
     chart_caption(len(df_f))
 
-st.markdown("---")
+section_divider()
 st.subheader("Attrition by Education Field")
 ef = attrition_rate(df_f, "EducationField").sort_values("Rate", ascending=True)
-fig = px.bar(ef, y="EducationField", x="Rate", orientation="h", color="Rate", color_continuous_scale="RdYlGn_r", text="Rate")
+fig = px.bar(ef, y="EducationField", x="Rate", orientation="h", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
 fig.update_traces(texttemplate="%{text}%", textposition="outside")
 polish(fig, 380)
 fig.update_layout(coloraxis_showscale=False)
@@ -110,12 +110,12 @@ st.plotly_chart(fig, use_container_width=True)
 sig_caption("EducationField")
 chart_caption(len(df_f))
 
-st.markdown("---")
+section_divider()
 st.subheader("Intersectional Risk Matrix")
 matrix = df_f.groupby(["JobRole", "MaritalStatus"], observed=False).agg(Total=("Attrition", "count"), Left=("Attrition", "sum")).reset_index()
 matrix["Rate"] = (matrix["Left"] / matrix["Total"] * 100).fillna(0).round(1)
 pivot = matrix.pivot(index="JobRole", columns="MaritalStatus", values="Rate").fillna(0)
-fig = px.imshow(pivot, color_continuous_scale="RdYlGn_r", text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
+fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
 polish(fig, 460)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
@@ -123,7 +123,7 @@ chart_caption(len(df_f))
 st.subheader("Job Level x Age Group Bubble Chart")
 bubble = df_f.groupby(["JobLevelLabel", "AgeGroup"], observed=False).agg(Total=("Attrition", "count"), Left=("Attrition", "sum")).reset_index()
 bubble["Rate"] = (bubble["Left"] / bubble["Total"] * 100).fillna(0).round(1)
-fig = px.scatter(bubble, x="AgeGroup", y="JobLevelLabel", size="Left", color="Rate", color_continuous_scale="RdYlGn_r", hover_data=["Total", "Left"], labels={"Rate": "Attrition %"})
+fig = px.scatter(bubble, x="AgeGroup", y="JobLevelLabel", size="Left", color="Rate", color_continuous_scale=RATE_SCALE, hover_data=["Total", "Left"], labels={"Rate": "Attrition %"})
 polish(fig, 420)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))

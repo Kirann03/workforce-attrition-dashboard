@@ -71,3 +71,26 @@ def chi_square_test(df: pd.DataFrame, group_col: str) -> dict:
 def top_n_risk_groups(df: pd.DataFrame, group_col: str, n: int = 3) -> pd.DataFrame:
     grouped = attrition_rate(df, group_col)
     return grouped[grouped["Total"] >= MIN_GROUP_SIZE].sort_values("Rate", ascending=False).head(n)
+
+
+def loyalty_attrition_split(df: pd.DataFrame) -> pd.DataFrame:
+    df2 = df.copy()
+    df2["LoyaltyTier"] = pd.cut(
+        df2["LoyaltyScore"],
+        bins=[0, 0.33, 0.66, 1.01],
+        labels=["Low (<33%)", "Mid (33-66%)", "High (>66%)"],
+        include_lowest=True,
+    )
+    return attrition_rate(df2, "LoyaltyTier")
+
+
+def satisfaction_risk_matrix(df: pd.DataFrame, sat_col: str, workload_col: str) -> pd.DataFrame:
+    df2 = df.copy()
+    df2["SatBand"] = df2[sat_col].apply(lambda value: "Low (1-2)" if value <= 2 else "High (3-4)")
+    df2["WorkloadBand"] = df2[workload_col].map({"Yes": "Overtime", "No": "No Overtime"})
+    grouped = df2.groupby(["SatBand", "WorkloadBand"], observed=False).agg(
+        Total=("Attrition", "count"),
+        Left=("Attrition", "sum"),
+    ).reset_index()
+    grouped["Rate"] = (grouped["Left"] / grouped["Total"] * 100).fillna(0).round(2)
+    return grouped

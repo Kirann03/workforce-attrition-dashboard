@@ -1,13 +1,14 @@
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, roc_curve
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_sample_weight
 
-from utils.charts import RISK_COLORS, polish
+from utils.charts import DEEP_NAVY, RATE_SCALE, RISK_COLORS, polish
 from utils.config import (
     INTERVENTION_MAP,
     ML_FEATURE_LABELS,
@@ -18,10 +19,10 @@ from utils.config import (
     RISK_SCORE_MEDIUM,
 )
 from utils.data_loader import load_data
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, insight_card, page_header, render_sidebar, section_divider
 
 
-st.set_page_config(page_title="Attrition Risk Score", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Attrition Risk Score", page_icon="🎯", layout="wide", initial_sidebar_state="expanded")
 apply_theme()
 render_sidebar()
 
@@ -127,19 +128,27 @@ k1.metric("High Risk Employees", f"{(filtered_scored['RiskTier'] == 'High').sum(
 k2.metric("Medium Risk Employees", f"{(filtered_scored['RiskTier'] == 'Medium').sum():,}")
 k3.metric("Low Risk Employees", f"{(filtered_scored['RiskTier'] == 'Low').sum():,}")
 
-with st.expander("Model Performance"):
+section_divider("Model Performance Deep Dive")
+with st.expander("Model Performance & ROC Curve", expanded=True):
     perf = model_performance(df)
     m1, m2, m3, m4 = st.columns([1, 1, 1, 1])
-    m1.metric("AUC", f"{perf['auc']:.2f}")
-    m2.metric("Precision", f"{perf['precision']:.2f}")
-    m3.metric("Recall", f"{perf['recall']:.2f}")
-    m4.metric("F1", f"{perf['f1']:.2f}")
+    m1.metric("AUC-ROC", f"{perf['auc']:.3f}")
+    m2.metric("Precision", f"{perf['precision']:.3f}")
+    m3.metric("Recall", f"{perf['recall']:.3f}")
+    m4.metric("F1 Score", f"{perf['f1']:.3f}")
+    fpr, tpr, _ = roc_curve(df["Attrition"], model.predict_proba(model_df[feature_cols])[:, 1])
+    roc_fig = go.Figure()
+    roc_fig.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines", name=f"AUC = {perf['auc']:.3f}", line=dict(color=DEEP_NAVY, width=3)))
+    roc_fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines", name="Random", line=dict(color="#C0CDD8", dash="dash")))
+    roc_fig.update_layout(xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
+    polish(roc_fig, 380, title="ROC Curve")
+    st.plotly_chart(roc_fig, use_container_width=True)
 
 col1, col2 = st.columns([1, 1])
 with col1:
     st.subheader("Risk Score Distribution")
     fig = px.histogram(filtered_scored, x="RiskScore", color="RiskTier", nbins=30, color_discrete_map=RISK_COLORS)
-    polish(fig, 360)
+    polish(fig, 360, title="Risk Score Distribution")
     fig.update_layout(legend_title="Risk Tier")
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(filtered_scored))
@@ -148,19 +157,70 @@ with col2:
     st.subheader("Risk Tier by Department")
     rt = filtered_scored.groupby(["Department", "RiskTier"], observed=False).size().reset_index(name="Count")
     fig = px.bar(rt, x="Department", y="Count", color="RiskTier", barmode="stack", color_discrete_map=RISK_COLORS)
-    polish(fig, 360)
+    polish(fig, 360, title="Risk Tier by Department")
     fig.update_layout(legend_title="Risk Tier")
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(filtered_scored))
 
-st.markdown("---")
+section_divider("Risk Score Distribution by Segment")
+rs_col1, rs_col2 = st.columns([1, 1])
+with rs_col1:
+    fig = px.box(
+        filtered_scored,
+        x="JobLevelLabel",
+        y="RiskScore",
+        color="RiskTier",
+        color_discrete_map=RISK_COLORS,
+        labels={"JobLevelLabel": "Job Level", "RiskScore": "Risk Score (0-100)"},
+    )
+    polish(fig, 380, title="Risk Score by Job Level")
+    fig.update_layout(legend_title="Risk Tier")
+    st.plotly_chart(fig, use_container_width=True)
+    chart_caption(len(filtered_scored))
+
+with rs_col2:
+    fig = px.violin(
+        filtered_scored,
+        x="Department",
+        y="RiskScore",
+        color="RiskTier",
+        color_discrete_map=RISK_COLORS,
+        box=True,
+        points=False,
+        labels={"RiskScore": "Risk Score (0-100)"},
+    )
+    polish(fig, 380, title="Risk Score Distribution by Department")
+    fig.update_layout(legend_title="Risk Tier")
+    st.plotly_chart(fig, use_container_width=True)
+    chart_caption(len(filtered_scored))
+
+section_divider("Risk Drivers & Interventions")
 st.subheader("Ranked Attrition Risk Drivers")
 fi = pd.DataFrame({"Feature": feature_cols, "Importance": model.feature_importances_})
 fi["Importance (%)"] = (fi["Importance"] / fi["Importance"].sum() * 100).round(2)
-fi["Feature"] = fi["Feature"].map(ML_FEATURE_LABELS)
+fi["Feature Label"] = fi["Feature"].map(ML_FEATURE_LABELS)
 fi = fi.sort_values("Importance (%)", ascending=False).reset_index(drop=True)
 fi.insert(0, "Rank", fi.index + 1)
-st.dataframe(fi[["Rank", "Feature", "Importance (%)"]], use_container_width=True, hide_index=True)
+feat_col1, feat_col2 = st.columns([1, 1])
+with feat_col1:
+    st.dataframe(
+        fi[["Rank", "Feature Label", "Importance (%)"]].rename(columns={"Feature Label": "Driver"}),
+        use_container_width=True,
+        hide_index=True,
+    )
+with feat_col2:
+    fig = px.bar(
+        fi.head(10),
+        y="Feature Label",
+        x="Importance (%)",
+        orientation="h",
+        color="Importance (%)",
+        color_continuous_scale=RATE_SCALE,
+    )
+    polish(fig, 360, title="Top 10 Risk Drivers")
+    fig.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
+    st.plotly_chart(fig, use_container_width=True)
+insight_card("Model Driver Summary", "The ranked drivers combine model importance with workforce context so HR can prioritize interventions against the strongest attrition signals.")
 
 st.subheader("Retention Intervention Matrix")
 top_raw_features = pd.DataFrame({"Feature": feature_cols, "Importance": model.feature_importances_}).sort_values("Importance", ascending=False)["Feature"].head(3)
@@ -176,7 +236,7 @@ for tier in ["High", "Medium"]:
         )
 st.dataframe(pd.DataFrame(intervention_rows), use_container_width=True, hide_index=True)
 
-st.markdown("---")
+section_divider("High-Risk Segments")
 st.subheader("High-Risk Employee Segments")
 means = model_df[feature_cols].mean()
 importances = pd.Series(model.feature_importances_, index=feature_cols)
