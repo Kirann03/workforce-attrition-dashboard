@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 
 PAN_RED = "#FA582D"
@@ -18,35 +19,52 @@ def apply_theme():
             --pan-red: {PAN_RED};
             --pan-dark: {PAN_DARK};
             --pan-navy: {PAN_NAVY};
-            --pan-text: {PAN_TEXT};
-            --pan-muted: {PAN_MUTED};
-            --pan-border: {PAN_BORDER};
-            --pan-bg: {PAN_BG};
+            --pan-text: #17202A;
+            --pan-muted: #607083;
+            --pan-border: #D8E0EA;
+            --pan-bg: #F4F7FB;
+            --pan-surface: #FFFFFF;
+            --pan-sidebar: #FFFFFF;
+            --pan-sidebar-text: #17202A;
+            --pan-shadow: rgba(14,34,53,0.06);
+            --pan-soft-blue: #EAF3FF;
+        }}
+
+        @media (prefers-color-scheme: dark) {{
+            :root {{
+                --pan-text: #EAF0F7;
+                --pan-muted: #AAB7C6;
+                --pan-border: #26384A;
+                --pan-bg: #07131F;
+                --pan-surface: #0E2235;
+                --pan-sidebar: #07131F;
+                --pan-sidebar-text: #EAF0F7;
+                --pan-shadow: rgba(0,0,0,0.25);
+                --pan-soft-blue: #102A44;
+            }}
         }}
 
         .stApp {{
-            background:
-                linear-gradient(180deg, rgba(244,247,251,0.98), rgba(244,247,251,1) 380px),
-                radial-gradient(circle at top left, rgba(250,88,45,0.12), transparent 32rem);
+            background: var(--pan-bg);
             color: var(--pan-text);
         }}
 
         [data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, #07131F 0%, #0E2235 100%);
-            border-right: 1px solid rgba(255,255,255,0.08);
+            background: var(--pan-sidebar);
+            border-right: 1px solid var(--pan-border);
         }}
 
         [data-testid="stSidebar"] * {{
-            color: #EAF0F7 !important;
+            color: var(--pan-sidebar-text) !important;
         }}
 
         [data-testid="stSidebar"] hr {{
-            border-color: rgba(255,255,255,0.16);
+            border-color: var(--pan-border);
         }}
 
         [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
         [data-testid="stSidebar"] label {{
-            color: #C7D2DE !important;
+            color: var(--pan-muted) !important;
         }}
 
         .block-container {{
@@ -70,12 +88,12 @@ def apply_theme():
         }}
 
         div[data-testid="stMetric"] {{
-            background: #FFFFFF;
+            background: var(--pan-surface);
             border: 1px solid var(--pan-border);
             border-left: 4px solid var(--pan-red);
             border-radius: 8px;
             padding: 1rem 1.1rem;
-            box-shadow: 0 10px 24px rgba(14,34,53,0.06);
+            box-shadow: 0 10px 24px var(--pan-shadow);
         }}
 
         div[data-testid="stMetricLabel"] p {{
@@ -92,11 +110,11 @@ def apply_theme():
         }}
 
         div[data-testid="stPlotlyChart"] {{
-            background: #FFFFFF;
+            background: var(--pan-surface);
             border: 1px solid var(--pan-border);
             border-radius: 8px;
             padding: 0.75rem;
-            box-shadow: 0 10px 24px rgba(14,34,53,0.05);
+            box-shadow: 0 10px 24px var(--pan-shadow);
         }}
 
         .pan-hero {{
@@ -131,12 +149,12 @@ def apply_theme():
         }}
 
         .pan-page-head {{
-            background: #FFFFFF;
+            background: var(--pan-surface);
             border: 1px solid var(--pan-border);
             border-radius: 8px;
             padding: 1.25rem 1.35rem;
             margin-bottom: 1rem;
-            box-shadow: 0 10px 24px rgba(14,34,53,0.05);
+            box-shadow: 0 10px 24px var(--pan-shadow);
         }}
 
         .pan-page-head h1 {{
@@ -159,7 +177,7 @@ def apply_theme():
         .pan-chip {{
             border: 1px solid rgba(250,88,45,0.24);
             background: rgba(250,88,45,0.08);
-            color: #7A2B18;
+            color: var(--pan-text);
             border-radius: 999px;
             padding: 0.34rem 0.68rem;
             font-size: 0.78rem;
@@ -167,11 +185,11 @@ def apply_theme():
         }}
 
         .pan-panel {{
-            background: #FFFFFF;
+            background: var(--pan-surface);
             border: 1px solid var(--pan-border);
             border-radius: 8px;
             padding: 1.15rem 1.25rem;
-            box-shadow: 0 10px 24px rgba(14,34,53,0.05);
+            box-shadow: 0 10px 24px var(--pan-shadow);
             height: 100%;
         }}
 
@@ -186,13 +204,13 @@ def apply_theme():
         }}
 
         .pan-module {{
-            background: #FFFFFF;
+            background: var(--pan-surface);
             border: 1px solid var(--pan-border);
             border-top: 3px solid var(--pan-red);
             border-radius: 8px;
             padding: 1rem;
             min-height: 132px;
-            box-shadow: 0 10px 24px rgba(14,34,53,0.05);
+            box-shadow: 0 10px 24px var(--pan-shadow);
         }}
 
         .pan-module strong {{
@@ -208,19 +226,75 @@ def apply_theme():
         }}
 
         .pan-sidebar-brand {{
-            border: 1px solid rgba(255,255,255,0.16);
+            border: 1px solid var(--pan-border);
             border-radius: 8px;
-            padding: 0.85rem;
-            background: rgba(255,255,255,0.06);
+            padding: 0.95rem;
+            background: var(--pan-surface);
+            margin-bottom: 0.8rem;
         }}
 
         .pan-sidebar-brand strong {{
-            color: #FFFFFF;
+            color: var(--pan-sidebar-text);
         }}
 
         .pan-sidebar-brand span {{
-            color: #C7D2DE;
+            color: var(--pan-muted);
             font-size: 0.86rem;
+        }}
+
+        .pan-sidebar-kicker {{
+            color: var(--pan-red) !important;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }}
+
+        .pan-sidebar-title {{
+            color: var(--pan-sidebar-text) !important;
+            font-size: 1rem;
+            font-weight: 760;
+            line-height: 1.25;
+            margin-top: 0.2rem;
+        }}
+
+        .pan-insight {{
+            background: var(--pan-soft-blue);
+            border: 1px solid #B8D7F5;
+            border-left: 4px solid #335C81;
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            margin: 0.5rem 0 1rem 0;
+            color: var(--pan-text);
+        }}
+
+        .pan-risk-badge {{
+            border-radius: 999px;
+            color: #FFFFFF;
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 760;
+            padding: 0.2rem 0.55rem;
+            text-align: center;
+            white-space: nowrap;
+        }}
+
+        .pan-divider {{
+            border-top: 1px solid var(--pan-border);
+            margin: 1.5rem 0 0.9rem 0;
+            position: relative;
+        }}
+
+        .pan-divider span {{
+            background: var(--pan-bg);
+            color: var(--pan-muted);
+            font-size: 0.78rem;
+            font-weight: 760;
+            letter-spacing: 0.08em;
+            padding-right: 0.75rem;
+            position: relative;
+            text-transform: uppercase;
+            top: -0.7rem;
         }}
         </style>
         """,
@@ -229,19 +303,23 @@ def apply_theme():
 
 
 def render_sidebar():
-    st.sidebar.image(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Palo_Alto_Networks_2020_logo.svg/320px-Palo_Alto_Networks_2020_logo.svg.png",
-        width=210,
-    )
     st.sidebar.markdown(
         """
         <div class="pan-sidebar-brand">
-            <strong>Workforce Intelligence</strong><br>
+            <div class="pan-sidebar-kicker">Palo Alto Networks</div>
+            <div class="pan-sidebar-title">Workforce Intelligence</div>
             <span>Attrition patterns, risk hotspots, and retention signals for HR leadership.</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    st.sidebar.page_link("app.py", label="Command Center")
+    st.sidebar.page_link("pages/01_Overview.py", label="Overview")
+    st.sidebar.page_link("pages/02_Department_Role.py", label="Department & Role")
+    st.sidebar.page_link("pages/03_Demographics.py", label="Demographics")
+    st.sidebar.page_link("pages/04_Tenure_Workload.py", label="Tenure & Workload")
+    st.sidebar.page_link("pages/05_Risk_Score.py", label="Risk Score")
+    st.sidebar.page_link("pages/06_Compensation.py", label="Compensation")
     st.sidebar.markdown("---")
 
 
@@ -273,3 +351,65 @@ def hero(title: str, subtitle: str, eyebrow: str = "Palo Alto Networks"):
         """,
         unsafe_allow_html=True,
     )
+
+
+def insight_card(title: str, body: str, icon: str = "Insight"):
+    st.markdown(
+        f"""
+        <div class="pan-insight">
+            <strong>{icon} | {title}</strong><br>
+            <span>{body}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def risk_badge(rate: float, baseline: float) -> str:
+    if rate > baseline * 1.5:
+        color = "#D83A22"
+        label = "HIGH RISK"
+    elif rate > baseline * 1.1:
+        color = "#F29D38"
+        label = "ELEVATED"
+    else:
+        color = "#1A9A74"
+        label = "BELOW BASE"
+    return f'<span class="pan-risk-badge" style="background:{color};">{label}</span>'
+
+
+def data_quality_banner(df: pd.DataFrame):
+    nulls = int(df.isna().sum().sum())
+    duplicate_count = 0
+    if "EmployeeNumber" in df.columns:
+        duplicate_count = int(df["EmployeeNumber"].duplicated().sum())
+    attrition_ok = pd.api.types.is_integer_dtype(df["Attrition"])
+    if nulls == 0 and duplicate_count == 0 and attrition_ok:
+        st.success(f"Data health check passed: {len(df):,} records, {len(df.columns)} fields, no missing values detected.")
+    else:
+        st.warning(
+            f"Data health check: {nulls:,} missing values, {duplicate_count:,} duplicate employee IDs, "
+            f"Attrition integer type: {attrition_ok}."
+        )
+
+
+def section_divider(label: str):
+    st.markdown(
+        f'<div class="pan-divider"><span>{label}</span></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def chart_caption(n: int):
+    st.caption(f"Source: Palo Alto Networks HR Dataset | n = {n:,}")
+
+
+def download_filtered_data(df: pd.DataFrame, filename: str):
+    with st.expander("Download Filtered Data"):
+        st.download_button(
+            "Download CSV",
+            data=df.to_csv(index=False).encode("utf-8"),
+            file_name=filename,
+            mime="text/csv",
+            use_container_width=True,
+        )

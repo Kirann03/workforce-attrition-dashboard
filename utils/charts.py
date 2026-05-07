@@ -7,9 +7,9 @@ RISK_COLORS = {"High": "#D83A22", "Medium": "#F29D38", "Low": "#1A9A74"}
 
 pio.templates["pan_professional"] = {
     "layout": {
-        "font": {"family": "Inter, Segoe UI, Arial, sans-serif", "color": "#17202A"},
-        "paper_bgcolor": "#FFFFFF",
-        "plot_bgcolor": "#FFFFFF",
+        "font": {"family": "Inter, Segoe UI, Arial, sans-serif"},
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
         "colorway": ["#FA582D", "#1A9A74", "#335C81", "#F2B134", "#6C5CE7", "#657786"],
         "margin": {"l": 48, "r": 28, "t": 52, "b": 46},
         "xaxis": {"gridcolor": "#E6ECF2", "linecolor": "#CAD4DF", "zerolinecolor": "#E6ECF2"},

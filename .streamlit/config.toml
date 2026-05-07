@@ -1,10 +1,10 @@
-[theme]
-base = "light"
-primaryColor = "#FA582D"
-backgroundColor = "#F4F7FB"
-secondaryBackgroundColor = "#FFFFFF"
-textColor = "#17202A"
-font = "sans serif"
+[client]
+showSidebarNavigation = false
 
 [server]
 headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false

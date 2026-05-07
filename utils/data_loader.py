@@ -3,6 +3,41 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from utils.config import (
+    AGE_BINS,
+    AGE_LABELS,
+    CAREER_BINS,
+    CAREER_LABELS,
+    DISTANCE_BINS,
+    DISTANCE_LABELS,
+    EDUCATION_LABELS,
+    INCOME_BINS,
+    INCOME_LABELS,
+    JOB_LEVEL_LABELS,
+    TENURE_BINS,
+    TENURE_LABELS,
+)
+
+
+CRITICAL_COLUMNS = [
+    "Age",
+    "Attrition",
+    "Department",
+    "JobRole",
+    "OverTime",
+    "BusinessTravel",
+    "MonthlyIncome",
+    "YearsAtCompany",
+]
+
+
+def validate_data(df):
+    missing = df[CRITICAL_COLUMNS].isna().sum()
+    missing = missing[missing > 0]
+    if not missing.empty:
+        st.warning("Data quality warning: missing values found in critical columns.")
+    return df
+
 
 @st.cache_data
 def load_data():
@@ -19,28 +54,49 @@ def load_data():
     df = pd.read_csv(csv_path)
     df["Attrition"] = df["Attrition"].astype(int)
     df["Attrition_Label"] = df["Attrition"].map({1: "Left", 0: "Stayed"})
+    validate_data(df)
 
     df["AgeGroup"] = pd.cut(
         df["Age"],
-        bins=[17, 25, 35, 45, 55, 100],
-        labels=["18-25", "26-35", "36-45", "46-55", "55+"],
+        bins=AGE_BINS,
+        labels=AGE_LABELS,
     )
     df["TenureBucket"] = pd.cut(
         df["YearsAtCompany"],
-        bins=[-1, 1, 3, 5, 10, 100],
-        labels=["0-1 yr", "1-3 yrs", "3-5 yrs", "5-10 yrs", "10+ yrs"],
+        bins=TENURE_BINS,
+        labels=TENURE_LABELS,
     )
     df["CareerStage"] = pd.cut(
         df["TotalWorkingYears"],
-        bins=[-1, 5, 15, 100],
-        labels=["Early (0-5 yrs)", "Mid (6-15 yrs)", "Senior (15+ yrs)"],
+        bins=CAREER_BINS,
+        labels=CAREER_LABELS,
     )
     df["IncomeBand"] = pd.cut(
         df["MonthlyIncome"],
-        bins=[0, 3000, 6000, 10000, 100000],
-        labels=["Low (<3K)", "Mid (3-6K)", "High (6-10K)", "Very High (>10K)"],
+        bins=INCOME_BINS,
+        labels=INCOME_LABELS,
     )
 
-    edu_map = {1: "Below College", 2: "College", 3: "Bachelor", 4: "Master", 5: "Doctor"}
-    df["EducationLabel"] = df["Education"].map(edu_map)
+    df["EducationLabel"] = df["Education"].map(EDUCATION_LABELS)
+    df["PromotionStagnant"] = (df["YearsSinceLastPromotion"] >= 3).astype(int)
+    df["ManagerTenureRatio"] = (df["YearsWithCurrManager"] / df["YearsAtCompany"].replace(0, 1)).round(2)
+    df["JobHopper"] = (df["NumCompaniesWorked"] >= 4).astype(int)
+    df["WorkloadStress"] = (
+        (df["OverTime"] == "Yes") & (df["BusinessTravel"] == "Travel_Frequently")
+    ).astype(int)
+    df["SatisfactionIndex"] = df[
+        ["JobSatisfaction", "EnvironmentSatisfaction", "WorkLifeBalance", "RelationshipSatisfaction"]
+    ].mean(axis=1).round(2)
+    df["IncomeLevelRatio"] = (df["MonthlyIncome"] / (df["JobLevel"] * 1000)).round(2)
+    df["LoyaltyScore"] = (
+        df["YearsAtCompany"] / df["TotalWorkingYears"].replace(0, 1)
+    ).clip(0, 1).round(2)
+    df["DistanceBand"] = pd.cut(
+        df["DistanceFromHome"],
+        bins=DISTANCE_BINS,
+        labels=DISTANCE_LABELS,
+        include_lowest=True,
+    )
+    df["TrainingGap"] = (df["TrainingTimesLastYear"] == 0).astype(int)
+    df["JobLevelLabel"] = df["JobLevel"].map(JOB_LEVEL_LABELS)
     return df
