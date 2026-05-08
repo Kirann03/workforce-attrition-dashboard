@@ -639,6 +639,11 @@ def apply_theme():
             position: relative;
         }}
 
+        .pan-kpi-divider {{
+            border-top: 1px solid var(--pan-border);
+            margin: 0.85rem 0 1.05rem;
+        }}
+
         .pan-divider span {{
             background: var(--pan-bg);
             color: var(--pan-muted);
@@ -750,17 +755,44 @@ def render_sidebar():
     df = load_data()
     summary = attrition_summary(df)
     top_dept = attrition_rate(df, "Department").sort_values("Rate", ascending=False).iloc[0]
+    ot_rate = df[df["OverTime"] == "Yes"]["Attrition"].mean() * 100
+    non_ot_rate = df[df["OverTime"] == "No"]["Attrition"].mean() * 100
     st.markdown(
         f"""
         <div class="pan-topbar">
             <div>
                 <div class="pan-topbar-subtitle">Palo Alto Networks | Workforce Analytics</div>
-                <div class="pan-topbar-title">Attrition Intelligence Command Center</div>
+                <div class="pan-topbar-title">Workforce Attrition Intelligence</div>
             </div>
             <div class="pan-topbar-meta">
                 <span class="pan-topbar-pill">{summary['total']:,} employees</span>
                 <span class="pan-topbar-pill">{summary['rate']}% attrition</span>
                 <span class="pan-topbar-pill">Hotspot: {top_dept['Department']}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        f"""
+        <div class="pan-ticker">
+            <div class="pan-ticker-track">
+                <span>Overall Attrition: {summary['rate']}%</span>
+                <span>&#8202;</span>
+                <span>Dept Hotspot: {top_dept['Department']} - {top_dept['Rate']:.1f}%</span>
+                <span>&#8202;</span>
+                <span>Overtime Lift: {ot_rate - non_ot_rate:+.1f} pts</span>
+                <span>&#8202;</span>
+                <span>Retained: {summary['stayed']:,} employees</span>
+                <span>&#8202;</span>
+                <span>Overall Attrition: {summary['rate']}%</span>
+                <span>&#8202;</span>
+                <span>Dept Hotspot: {top_dept['Department']} - {top_dept['Rate']:.1f}%</span>
+                <span>&#8202;</span>
+                <span>Overtime Lift: {ot_rate - non_ot_rate:+.1f} pts</span>
+                <span>&#8202;</span>
+                <span>Retained: {summary['stayed']:,} employees</span>
             </div>
         </div>
         """,
@@ -777,7 +809,6 @@ def render_sidebar():
         """,
         unsafe_allow_html=True,
     )
-    st.sidebar.page_link("app.py", label="Command Center")
     st.sidebar.page_link("pages/01_Overview.py", label="Overview")
     st.sidebar.page_link("pages/02_Department_Role.py", label="Department & Role")
     st.sidebar.page_link("pages/03_Demographics.py", label="Demographics")
@@ -859,7 +890,7 @@ def render_global_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 def breadcrumb(label: str) -> None:
     """Render a page breadcrumb."""
-    st.markdown(f'<div class="pan-breadcrumb">Command Center &gt; {label}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="pan-breadcrumb">Workforce Intelligence &rsaquo; {label}</div>', unsafe_allow_html=True)
 
 
 def section_badge(number: int) -> None:

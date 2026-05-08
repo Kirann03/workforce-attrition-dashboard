@@ -3,9 +3,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from utils.charts import DEEP_NAVY, EXIT_SCALE, RATE_SCALE, STATUS_COLORS, polish, sankey
+from utils.config import ATTRITION_HIGH_THRESHOLD
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, risk_badge, section_divider
 
 
 st.set_page_config(page_title="Department & Role Analysis", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
@@ -21,6 +22,48 @@ page_header(
     "Compare attrition rates against the company baseline, separate rate hotspots from exit-volume hotspots, and prioritize specific role interventions.",
     ["Department selector", "Job role filter", "Benchmark line", "Hotspot callout"],
 )
+
+dept_rates_all = attrition_rate(df, "Department").sort_values("Rate", ascending=False)
+role_rates_all = attrition_rate(df, "JobRole").sort_values("Rate", ascending=False)
+baseline_all = df["Attrition"].mean() * 100
+
+alerts = []
+for _, row in dept_rates_all.iterrows():
+    if row["Rate"] / 100 > ATTRITION_HIGH_THRESHOLD:
+        alerts.append(
+            f"**{row['Department']}** department exceeds the 30% high-risk threshold "
+            f"at **{row['Rate']:.1f}%** attrition."
+        )
+for _, row in role_rates_all.iterrows():
+    if row["Rate"] / 100 > ATTRITION_HIGH_THRESHOLD:
+        alerts.append(
+            f"**{row['JobRole']}** role exceeds the 30% high-risk threshold "
+            f"at **{row['Rate']:.1f}%** attrition."
+        )
+
+st.markdown("#### Critical Risk Alerts")
+if alerts:
+    for alert in alerts[:5]:
+        st.warning(alert)
+else:
+    st.success("No department or role exceeds the 30% high-risk attrition threshold.")
+
+st.markdown("#### Organisation-Wide Department Summary")
+top_role_by_dept = (
+    df.groupby(["Department", "JobRole"], observed=False)
+    .agg(Total=("Attrition", "count"), Left=("Attrition", "sum"))
+    .reset_index()
+)
+top_role_by_dept["Rate"] = (top_role_by_dept["Left"] / top_role_by_dept["Total"] * 100).fillna(0)
+top_role_by_dept = top_role_by_dept.sort_values(["Department", "Rate"], ascending=[True, False])
+top_role_by_dept = top_role_by_dept.drop_duplicates("Department").set_index("Department")["JobRole"]
+
+summary_table = dept_rates_all.rename(columns={"Rate": "Attrition %", "Total": "Total Employees"}).copy()
+summary_table["Risk Level"] = summary_table["Attrition %"].apply(lambda rate: risk_badge(rate, baseline_all))
+summary_table["Top Exit Role"] = summary_table["Department"].map(top_role_by_dept)
+summary_table = summary_table[["Department", "Total Employees", "Attrition %", "Risk Level", "Top Exit Role"]]
+st.write(summary_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+st.markdown('<div style="margin-bottom:1.5rem"></div>', unsafe_allow_html=True)
 
 df_filtered = render_global_filters(df)
 

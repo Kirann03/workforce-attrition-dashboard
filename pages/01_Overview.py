@@ -7,7 +7,7 @@ from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.config import SATISFACTION_COLS, SATISFACTION_LABELS
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, attrition_summary
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, hero, render_global_filters, render_sidebar, section_divider
 
 
 st.set_page_config(page_title="Attrition Overview", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -23,25 +23,27 @@ if df.empty:
     st.warning("No data matches the selected filters.")
     st.stop()
 
-page_header(
-    "Organizational Baseline",
-    "Attrition Overview Dashboard",
-    "Monitor workforce turnover, retained-versus-exited distribution, department-level attrition, compensation spread, and satisfaction gaps.",
-    ["Attrition rate", "Department baseline", "Satisfaction signals"],
+hero(
+    "Workforce Attrition Pattern Intelligence",
+    "A leadership-grade analytics platform for identifying attrition concentration, workforce risk hotspots, and retention signals across departments, job roles, demographics, tenure, workload, compensation, and predictive risk segments.",
+    "Palo Alto Networks | HR Analytics",
 )
 
 summary = attrition_summary(df)
 risk_flag = int(df["WorkloadStress"].sum())
+dept_df = attrition_rate(df, "Department")
+role_df = attrition_rate(df, "JobRole")
+top_dept = dept_df.sort_values("Rate", ascending=False).iloc[0]
+top_role = role_df.sort_values("Rate", ascending=False).iloc[0]
 
-c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 1, 1.1])
+c1, c2, c3, c4, c5, c6 = st.columns([1, 1, 1, 1, 1.15, 1.15])
 c1.metric("Total Employees", f"{summary['total']:,}")
 c2.metric("Employees Left", f"{summary['left']:,}", delta=f"{summary['rate']}% attrition", delta_color="inverse")
 c3.metric("Employees Retained", f"{summary['stayed']:,}")
 c4.metric("Attrition Rate", f"{summary['rate']}%")
-c5.metric("Risk-Flag Employees", f"{risk_flag:,}", delta="Overtime + frequent travel", delta_color="inverse")
+c5.metric("Highest-Risk Department", str(top_dept["Department"]), delta=f"{top_dept['Rate']:.1f}%", delta_color="inverse")
+c6.metric("Highest-Risk Role", str(top_role["JobRole"]), delta=f"{top_role['Rate']:.1f}%", delta_color="inverse")
 
-dept_df = attrition_rate(df, "Department")
-top_dept = dept_df.sort_values("Rate", ascending=False).iloc[0]
 stress_rate = df[df["WorkloadStress"] == 1]["Attrition"].mean() * 100 if risk_flag else 0
 st.info(
     f"The overall attrition rate is {summary['rate']}%. {top_dept['Department']} has the highest department rate "

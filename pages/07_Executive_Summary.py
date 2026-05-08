@@ -33,6 +33,35 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+stakeholder_col1, stakeholder_col2 = st.columns([1.2, 0.8])
+with stakeholder_col1:
+    st.markdown(
+        """
+        <div class="pan-panel">
+            <h3>What this dashboard answers</h3>
+            <ul>
+                <li>Which departments and job roles experience the highest attrition?</li>
+                <li>Is attrition concentrated among age groups, tenure bands, or career stages?</li>
+                <li>Do overtime, travel, distance, and promotion stagnation contribute to workforce risk?</li>
+                <li>Which compensation and satisfaction signals separate exits from retained employees?</li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+with stakeholder_col2:
+    st.markdown(
+        """
+        <div class="pan-panel">
+            <h3>Operating Principle</h3>
+            <p>Every page is designed as a diagnostic module: filter the workforce, locate
+            the hotspot, compare against baseline attrition, and convert the evidence into
+            a focused retention action.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 page_header(
     "Leadership Briefing",
     "Executive Summary - Workforce Attrition",
@@ -158,3 +187,79 @@ for priority, action in actions:
 
 st.button("Print this page (Ctrl+P / Cmd+P)", type="secondary")
 st.caption("Tip: Use Ctrl+P and save as PDF to export this executive summary.")
+
+section_divider("Analytics Navigation Hub")
+st.markdown("### Analytics Modules")
+st.markdown(
+    '<p style="color:var(--pan-muted);font-size:0.9rem;margin-bottom:1rem">'
+    "Navigate directly to any analytical module below.</p>",
+    unsafe_allow_html=True,
+)
+
+modules = [
+    (
+        "01",
+        "Overview Dashboard",
+        "Organizational baseline, retention mix, satisfaction gaps, and workload-risk interpretation.",
+        "pages/01_Overview.py",
+        "#82A9C7",
+    ),
+    (
+        "02",
+        "Department & Role",
+        "Hotspot matrix, benchmark comparison, role scatter, and intervention callout.",
+        "pages/02_Department_Role.py",
+        "#ACCCD8",
+    ),
+    (
+        "03",
+        "Demographic Explorer",
+        "Age, gender, marital status, education, and intersectional risk analysis.",
+        "pages/03_Demographics.py",
+        "#313A55",
+    ),
+    (
+        "04",
+        "Tenure & Workload",
+        "Overtime, travel, promotion bands, distance confidence intervals, and key findings.",
+        "pages/04_Tenure_Workload.py",
+        "#F0E2CD",
+    ),
+    (
+        "05",
+        "Risk Scoring Engine",
+        "Balanced ML model, risk tiers, performance metrics, feature drivers, and intervention matrix.",
+        "pages/05_Risk_Score.py",
+        "#C9BDAE",
+    ),
+    (
+        "06",
+        "Compensation Analysis",
+        "Pay equity, hike-performance patterns, stock-option gaps, and salary-band risk.",
+        "pages/06_Compensation.py",
+        "#82A9C7",
+    ),
+    (
+        "08",
+        "Cohort Analysis",
+        "Custom two-dimensional cohort matrices, top-risk combinations, and statistical validation.",
+        "pages/08_Cohort_Analysis.py",
+        "#ACCCD8",
+    ),
+]
+
+module_rows = [st.columns(3), st.columns(3), st.columns(3)]
+for idx, (num, title, body, page, color) in enumerate(modules):
+    with module_rows[idx // 3][idx % 3]:
+        st.markdown(
+            f"""
+            <div class="pan-module" style="border-left:3px solid {color}">
+                <span class="pan-module-number">{num}</span>
+                <strong>{title}</strong>
+                <span>{body}</span>
+                <div class="pan-module-cta">Open module &rarr;</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.page_link(page, label=f"Open {title}", use_container_width=True)
