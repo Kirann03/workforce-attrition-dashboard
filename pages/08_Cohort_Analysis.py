@@ -4,7 +4,7 @@ import streamlit as st
 
 from utils.charts import RATE_SCALE, polish
 from utils.data_loader import load_data
-from utils.kpis import chi_square_test
+from utils.kpis import chi_square_test, cramers_v
 from utils.theme import apply_theme, breadcrumb, chart_caption, download_filtered_data, page_header, render_global_filters, render_sidebar
 
 
@@ -73,5 +73,19 @@ st.dataframe(top5.reset_index(drop=True), use_container_width=True, hide_index=T
 test = chi_square_test(df, dim1)
 sig = "Statistically significant" if test["significant"] else "Not statistically significant"
 st.info(f"Association between **{COHORT_OPTIONS[dim1]}** and attrition: {sig} (p = {test['p_value']:.4f})")
+v = cramers_v(df, dim1, "Attrition")
+st.metric("Effect Size (Cramer's V)", f"{v:.3f}", help="0.1=small, 0.3=medium, 0.5=large")
+
+tab_export, tab_tenure = st.tabs(["Cohort Export", "Tenure Cohort Trends"])
+with tab_export:
+    st.download_button("Export Cohort Pivot CSV", pivot.to_csv().encode("utf-8"), "cohort_pivot.csv", "text/csv")
+with tab_tenure:
+    trend = df.groupby(["TenureBucket", "CareerStage"], observed=False).agg(Total=("Attrition", "count"), Left=("Attrition", "sum")).reset_index()
+    trend["Rate"] = (trend["Left"] / trend["Total"] * 100).fillna(0).round(1)
+    fig = px.bar(trend, x="TenureBucket", y="Rate", color="CareerStage", barmode="group", text="Rate")
+    fig.update_traces(texttemplate="%{text}%", textposition="outside")
+    polish(fig, 420, title="Tenure Bucket x Career Stage Attrition")
+    st.plotly_chart(fig, use_container_width=True)
+    chart_caption(len(df))
 
 download_filtered_data(cohort, "cohort_analysis.csv")

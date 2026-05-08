@@ -6,7 +6,7 @@ import streamlit as st
 from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.config import SATISFACTION_COLS, SATISFACTION_LABELS
 from utils.data_loader import load_data
-from utils.kpis import attrition_rate, attrition_summary
+from utils.kpis import attrition_rate, attrition_summary, cost_of_attrition
 from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, hero, render_global_filters, render_sidebar, section_divider
 
 
@@ -18,6 +18,9 @@ df_all = load_data()
 data_quality_banner(df_all)
 
 df = render_global_filters(df_all)
+attrition_only = st.toggle("Show Exited Employees Only", key="overview_attrition_only")
+if attrition_only:
+    df = df[df["Attrition"] == 1]
 
 if df.empty:
     st.warning("No data matches the selected filters.")
@@ -30,19 +33,21 @@ hero(
 )
 
 summary = attrition_summary(df)
+cost = cost_of_attrition(df)
 risk_flag = int(df["WorkloadStress"].sum())
 dept_df = attrition_rate(df, "Department")
 role_df = attrition_rate(df, "JobRole")
 top_dept = dept_df.sort_values("Rate", ascending=False).iloc[0]
 top_role = role_df.sort_values("Rate", ascending=False).iloc[0]
 
-c1, c2, c3, c4, c5, c6 = st.columns([1, 1, 1, 1, 1.15, 1.15])
+c1, c2, c3, c4, c5, c6, c7 = st.columns([1, 1, 1, 1, 1.15, 1.15, 1])
 c1.metric("Total Employees", f"{summary['total']:,}")
 c2.metric("Employees Left", f"{summary['left']:,}", delta=f"{summary['rate']}% attrition", delta_color="inverse")
 c3.metric("Employees Retained", f"{summary['stayed']:,}")
-c4.metric("Attrition Rate", f"{summary['rate']}%")
+c4.metric("Attrition Rate", f"{summary['rate']}%", delta="Industry avg: 13%", delta_color="inverse")
 c5.metric("Highest-Risk Department", str(top_dept["Department"]), delta=f"{top_dept['Rate']:.1f}%", delta_color="inverse")
 c6.metric("Highest-Risk Role", str(top_role["JobRole"]), delta=f"{top_role['Rate']:.1f}%", delta_color="inverse")
+c7.metric("Est. Annual Cost", f"${cost['total_annual_cost']:,.0f}")
 
 stress_rate = df[df["WorkloadStress"] == 1]["Attrition"].mean() * 100 if risk_flag else 0
 st.info(
@@ -146,5 +151,22 @@ gap_table["Gap"] = (gap_table["Stayed Mean"] - gap_table["Left Mean"]).round(2)
 gap_table = gap_table.sort_values("Gap", ascending=False)
 st.subheader("Satisfaction Gap Table")
 st.dataframe(gap_table, use_container_width=True, hide_index=True)
+with st.expander("What the Gaps Mean"):
+    interventions = {
+        "Job Satisfaction": "role redesign and manager coaching",
+        "Environment": "workplace and remote experience improvements",
+        "Work-Life Balance": "workload balancing and flexible scheduling",
+        "Relationships": "team connection and manager enablement",
+        "Job Involvement": "career ownership and clearer role outcomes",
+    }
+    meaningful = gap_table[gap_table["Gap"] > 0.2]
+    if meaningful.empty:
+        st.write("No satisfaction dimension shows a gap above 0.20 under the current filters.")
+    else:
+        for _, row in meaningful.iterrows():
+            st.write(
+                f"Employees who left scored {row['Gap']:.2f} lower on {row['Dimension']}, "
+                f"suggesting targeted {interventions.get(row['Dimension'], 'retention actions')} could reduce exits."
+            )
 
 download_filtered_data(df, "overview_workforce_data.csv")

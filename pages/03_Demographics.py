@@ -95,8 +95,10 @@ section_divider()
 st.subheader("Intersectional Risk Matrix")
 matrix = df_f.groupby(["JobRole", "MaritalStatus"], observed=False).agg(Total=("Attrition", "count"), Left=("Attrition", "sum")).reset_index()
 matrix["Rate"] = (matrix["Left"] / matrix["Total"] * 100).fillna(0).round(1)
-pivot = matrix.pivot(index="JobRole", columns="MaritalStatus", values="Rate").fillna(0)
-fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color="Attrition %"))
+matrix_metric = st.radio("Matrix Value", ["Attrition Rate", "Employee Count", "Exit Count"], horizontal=True)
+value_col = {"Attrition Rate": "Rate", "Employee Count": "Total", "Exit Count": "Left"}[matrix_metric]
+pivot = matrix.pivot(index="JobRole", columns="MaritalStatus", values=value_col).fillna(0)
+fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color=matrix_metric))
 polish(fig, 460)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
@@ -113,6 +115,30 @@ st.subheader("Age Distribution by Department and Attrition")
 fig = px.violin(df_f, x="Department", y="Age", color="Attrition_Label", box=True, points="outliers", color_discrete_map=STATUS_COLORS)
 polish(fig, 400)
 fig.update_layout(legend_title="Status")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_f))
+
+section_divider("Pay Equity by Gender & Education")
+male_median = df_f[df_f["Gender"] == "Male"]["MonthlyIncome"].median()
+female_median = df_f[df_f["Gender"] == "Female"]["MonthlyIncome"].median()
+pay_gap = ((male_median - female_median) / male_median * 100) if male_median else 0
+st.metric("Median Gender Pay Gap", f"{pay_gap:.1f}%", help="Calculated as (male median - female median) / male median.")
+fig = px.box(
+    df_f,
+    x="Gender",
+    y="MonthlyIncome",
+    color="Attrition_Label",
+    facet_col="EducationLabel",
+    color_discrete_map=STATUS_COLORS,
+    points="outliers",
+)
+polish(fig, 430, title="Monthly Income by Gender, Education, and Attrition Status")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_f))
+
+st.subheader("Tenure by Education Level")
+fig = px.violin(df_f, x="EducationLabel", y="YearsAtCompany", color="Attrition_Label", box=True, points="outliers", color_discrete_map=STATUS_COLORS)
+polish(fig, 390, title="Tenure Distribution by Education Level")
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
 

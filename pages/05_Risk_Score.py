@@ -492,6 +492,51 @@ else:
         raw_feature = top_feature.split("_", 1)[0] if top_feature.startswith("MaritalStatus_") else top_feature
         intervention = INTERVENTION_MAP.get(raw_feature, "Review manager-level retention plan and employee experience signals")
         insight_card("Top Intervention", intervention)
+        if raw_feature == "MonthlyIncome":
+            role_level_median = df[(df["JobRole"] == row["JobRole"]) & (df["JobLevel"] == row["JobLevel"])]["MonthlyIncome"].median()
+            estimate = max(role_level_median - row["MonthlyIncome"], 0)
+            st.metric("Intervention Cost Estimate", f"${estimate:,.0f}", help="Estimated monthly pay adjustment to reach role-level median.")
+        elif raw_feature == "OverTime":
+            st.metric("Intervention Cost Estimate", "$120,000", help="Approximate annual fully loaded cost of one additional hire to redistribute workload.")
+        else:
+            st.metric("Intervention Cost Estimate", "Low/Medium", help="Program cost varies by intervention design.")
+
+with st.expander("Population-Level Risk Factor Contributions"):
+    high_idx = scored_df[scored_df["RiskTier"] == "High"].index
+    if len(high_idx):
+        pop_contrib = driver_scores.loc[high_idx].abs().mean().sort_values(ascending=False).head(12).reset_index()
+        pop_contrib.columns = ["Feature", "Mean Absolute Contribution"]
+        pop_contrib["Feature Label"] = pop_contrib["Feature"].map(_feature_label)
+        fig = px.bar(pop_contrib, y="Feature Label", x="Mean Absolute Contribution", orientation="h", color="Mean Absolute Contribution", color_continuous_scale=RATE_SCALE)
+        polish(fig, 420, title="What's Driving the High-Risk Cohort")
+        fig.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
+        st.plotly_chart(fig, use_container_width=True)
+
+with st.expander("Risk Migration Analysis"):
+    migration = scored_df.groupby(["RiskTier", "Primary Risk Factor"], observed=False).size().reset_index(name="Count")
+    totals = migration.groupby("RiskTier", observed=False)["Count"].transform("sum")
+    migration["Share"] = (migration["Count"] / totals * 100).round(1)
+    migration = migration.sort_values(["RiskTier", "Share"], ascending=[True, False])
+    st.dataframe(migration, use_container_width=True, hide_index=True)
+
+with st.expander("Threshold Sensitivity Analysis"):
+    thresholds = np.arange(0.1, 0.91, 0.05)
+    rows = []
+    for threshold in thresholds:
+        preds = (perf["oof_probs"] >= threshold).astype(int)
+        rows.append(
+            {
+                "Threshold": threshold,
+                "Precision": precision_score(perf["y"], preds, zero_division=0),
+                "Recall": recall_score(perf["y"], preds, zero_division=0),
+                "F1": f1_score(perf["y"], preds, zero_division=0),
+            }
+        )
+    sensitivity = pd.DataFrame(rows)
+    fig = px.line(sensitivity, x="Threshold", y=["Precision", "Recall", "F1"], markers=True)
+    fig.add_vline(x=perf["threshold"], line_dash="dash", line_color=DEEP_NAVY, annotation_text="Optimal")
+    polish(fig, 430, title="Precision, Recall, and F1 by Threshold")
+    st.plotly_chart(fig, use_container_width=True)
 
 section_divider("Retention Intervention Matrix")
 top_features = fi.head(5)["Feature"].tolist()

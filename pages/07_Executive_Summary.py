@@ -1,10 +1,12 @@
+from datetime import date
+
 import plotly.express as px
 import streamlit as st
 
 from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.data_loader import load_data
-from utils.kpis import attrition_rate, attrition_summary
-from utils.theme import apply_theme, chart_caption, page_header, render_sidebar, risk_badge, section_divider
+from utils.kpis import attrition_rate, attrition_summary, cost_of_attrition
+from utils.theme import apply_theme, benchmark_table, chart_caption, page_header, render_sidebar, risk_badge, section_divider
 
 
 st.set_page_config(page_title="Executive Summary", page_icon="📋", layout="wide", initial_sidebar_state="expanded")
@@ -81,6 +83,7 @@ non_ot_rate = df[df["OverTime"] == "No"]["Attrition"].mean() * 100
 early_rate = df[df["YearsAtCompany"] <= 1]["Attrition"].mean() * 100
 stock_zero = df[df["StockOptionLevel"] == 0]["Attrition"].mean() * 100
 stock_any = df[df["StockOptionLevel"] > 0]["Attrition"].mean() * 100
+costs = cost_of_attrition(df)
 
 k1, k2, k3, k4, k5, k6 = st.columns([1, 1, 1, 1, 1, 1])
 k1.metric("Headcount", f"{summary['total']:,}")
@@ -184,6 +187,63 @@ for priority, action in actions:
         """,
         unsafe_allow_html=True,
     )
+    target_page = "pages/04_Tenure_Workload.py" if "overtime" in action.lower() or "onboarding" in action.lower() else ("pages/06_Compensation.py" if "stock" in action.lower() else "pages/02_Department_Role.py")
+    st.page_link(target_page, label="Open supporting analysis")
+
+section_divider("Benchmark Comparison")
+benchmark_rows = [
+    {"metric": "Attrition Rate", "company": f"{summary['rate']}%", "industry": "13.0%", "status": "warn" if summary["rate"] <= 18 else "risk"},
+    {"metric": "Early Tenure Attrition", "company": f"{early_rate:.1f}%", "industry": "18.0%", "status": "warn" if early_rate <= 25 else "risk"},
+    {"metric": "Overtime Attrition", "company": f"{ot_rate:.1f}%", "industry": "22.0%", "status": "risk" if ot_rate > 22 else "good"},
+    {"metric": "Training Sessions", "company": f"{df['TrainingTimesLastYear'].mean():.1f}", "industry": "2.5", "status": "good" if df["TrainingTimesLastYear"].mean() >= 2.5 else "warn"},
+    {"metric": "Promotion Rate", "company": f"{(df['YearsSinceLastPromotion'] == 0).mean() * 100:.1f}%", "industry": "16.0%", "status": "good"},
+]
+benchmark_table(benchmark_rows)
+
+try:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    for page_no in range(1, 4):
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.cell(0, 10, "Palo Alto Networks Workforce Attrition Report", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 8, f"Generated: {date.today().isoformat()} | Page {page_no}", ln=True)
+        pdf.ln(4)
+        if page_no == 1:
+            for label, value in [
+                ("Headcount", f"{summary['total']:,}"),
+                ("Exits", f"{summary['left']:,}"),
+                ("Attrition Rate", f"{summary['rate']}%"),
+                ("Overtime Attrition", f"{ot_rate:.1f}%"),
+                ("Early Tenure Attrition", f"{early_rate:.1f}%"),
+                ("Estimated Annual Cost", f"${costs['total_annual_cost']:,.0f}"),
+            ]:
+                pdf.cell(0, 8, f"{label}: {value}", ln=True)
+        elif page_no == 2:
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.cell(0, 8, "Critical Findings", ln=True)
+            pdf.set_font("Helvetica", "", 10)
+            findings = [
+                f"{dept_hotspot['Department']} is the highest-risk department at {dept_hotspot['Rate']:.1f}%.",
+                f"{role_hotspot['JobRole']} is the highest-risk role at {role_hotspot['Rate']:.1f}%.",
+                f"Overtime employees show {ot_rate:.1f}% attrition.",
+                f"Level 0 stock option employees show {stock_zero:.1f}% attrition.",
+                f"Early-tenure employees exit at {early_rate:.1f}%.",
+            ]
+            for finding in findings:
+                pdf.multi_cell(190, 6, f"- {finding}")
+        else:
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.cell(0, 8, "Recommended Priority Actions", ln=True)
+            pdf.set_font("Helvetica", "", 10)
+            for priority, action in actions:
+                pdf.multi_cell(190, 6, f"- {priority}: {action}")
+    pdf_bytes = bytes(pdf.output(dest="S"))
+    st.download_button("Download PDF Report", pdf_bytes, "executive_attrition_report.pdf", "application/pdf")
+except ImportError:
+    st.info("Install fpdf2 to enable PDF export: pip install fpdf2>=2.7.0")
 
 st.button("Print this page (Ctrl+P / Cmd+P)", type="secondary")
 st.caption("Tip: Use Ctrl+P and save as PDF to export this executive summary.")
@@ -240,6 +300,34 @@ modules = [
         "#82A9C7",
     ),
     (
+        "09",
+        "What-If Simulator",
+        "Interactive scenario planning for individual attrition risk and intervention design.",
+        "pages/09_What_If_Simulator.py",
+        "#313A55",
+    ),
+    (
+        "10",
+        "Survival Analysis",
+        "Kaplan-Meier tenure survival curves and hazard spike detection.",
+        "pages/10_Survival_Analysis.py",
+        "#82A9C7",
+    ),
+    (
+        "11",
+        "Retention ROI",
+        "Financial cost of attrition and retention program ROI modeling.",
+        "pages/11_Retention_ROI.py",
+        "#C9BDAE",
+    ),
+    (
+        "12",
+        "Action Plan",
+        "Auto-generated HR recommendations with evidence citations and exports.",
+        "pages/12_Recommendations.py",
+        "#ACCCD8",
+    ),
+    (
         "08",
         "Cohort Analysis",
         "Custom two-dimensional cohort matrices, top-risk combinations, and statistical validation.",
@@ -248,7 +336,7 @@ modules = [
     ),
 ]
 
-module_rows = [st.columns(3), st.columns(3), st.columns(3)]
+module_rows = [st.columns(3) for _ in range((len(modules) + 2) // 3)]
 for idx, (num, title, body, page, color) in enumerate(modules):
     with module_rows[idx // 3][idx % 3]:
         st.markdown(

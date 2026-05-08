@@ -8,6 +8,8 @@ dependencies = [
     "plotly>=5.22.0",
     "scikit-learn>=1.4.0",
     "scipy>=1.11.0",
+    "lifelines>=0.27.0",
+    "fpdf2>=2.7.0",
 ]
 
 [tool.setuptools]

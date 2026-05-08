@@ -3,7 +3,7 @@ import streamlit as st
 
 from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.data_loader import load_data
-from utils.kpis import attrition_rate
+from utils.kpis import attrition_rate, cost_of_attrition
 from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
 
 
@@ -124,5 +124,36 @@ polish(fig, 450)
 fig.update_layout(legend_title="Status")
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df))
+
+section_divider("Internal Pay Equity Map")
+level_median = df.groupby("JobLevel")["MonthlyIncome"].median()
+pay_map = df.groupby(["Department", "JobLevel"], observed=False)["MonthlyIncome"].median().reset_index()
+pay_map["Level Median"] = pay_map["JobLevel"].map(level_median)
+pay_map["Deviation"] = ((pay_map["MonthlyIncome"] - pay_map["Level Median"]) / pay_map["Level Median"] * 100).round(1)
+pivot = pay_map.pivot(index="Department", columns="JobLevel", values="Deviation").fillna(0)
+fig = px.imshow(pivot, color_continuous_scale=RATE_SCALE, text_auto=True, aspect="auto", labels=dict(color="Deviation %"))
+polish(fig, 390, title="Internal Pay Equity Map")
+st.plotly_chart(fig, use_container_width=True)
+
+st.subheader("Salary Hike vs Attrition Scatter")
+fig = px.scatter(
+    df,
+    x="PercentSalaryHike",
+    y="MonthlyIncome",
+    color="Attrition_Label",
+    size="YearsAtCompany",
+    hover_data=["Department", "JobRole", "JobLevel"],
+    color_discrete_map=STATUS_COLORS,
+)
+polish(fig, 420, title="Salary Hike vs Monthly Income")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df))
+
+st.subheader("Stock Option Simulation")
+extension_pct = st.slider("If we extended stock options to Level 0 employees, projected exit reduction (%)", 5, 50, 20)
+l0_exits = int(df[(df["StockOptionLevel"] == 0) & (df["Attrition"] == 1)].shape[0])
+cost = cost_of_attrition(df)
+projected_savings = l0_exits * (extension_pct / 100) * cost["cost_per_exit"]
+st.metric("Projected Savings", f"${projected_savings:,.0f}", delta=f"{extension_pct}% reduction among Level 0 exits")
 
 download_filtered_data(df, "compensation_data.csv")

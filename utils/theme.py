@@ -1051,6 +1051,74 @@ def apply_theme():
             position: relative;
             z-index: 1;
         }}
+
+        div[data-testid="stPlotlyChart"] .gauge .arc path {{
+            stroke-width: 0;
+        }}
+
+        [data-testid="stToggle"] > label {{
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--pan-text);
+        }}
+
+        div[data-testid="stNumberInput"] > div > div > input {{
+            border: 1px solid rgba(130, 169, 199, 0.55);
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }}
+
+        div[data-testid="stDownloadButton"] button {{
+            background: var(--pan-dark);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.55rem 1.25rem;
+            transition: background 0.15s ease;
+        }}
+
+        div[data-testid="stDownloadButton"] button:hover {{
+            background: var(--pan-navy);
+        }}
+
+        .pan-roi-card {{
+            background: var(--pan-surface);
+            border: 1px solid var(--pan-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--pan-soft-shadow);
+        }}
+
+        .pan-roi-value {{
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--pan-text);
+            letter-spacing: 0;
+        }}
+
+        .pan-roi-label {{
+            font-size: 0.8rem;
+            color: var(--pan-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 0.35rem;
+        }}
+
+        .pan-go {{
+            background: rgba(71, 111, 103, 0.12);
+            border: 1px solid rgba(71, 111, 103, 0.35);
+            border-left: 4px solid #476F67;
+        }}
+
+        .pan-nogo {{
+            background: rgba(192, 57, 43, 0.10);
+            border: 1px solid rgba(192, 57, 43, 0.35);
+            border-left: 4px solid #C0392B;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -1059,10 +1127,11 @@ def apply_theme():
 
 def render_sidebar():
     from utils.data_loader import load_data
-    from utils.kpis import attrition_rate, attrition_summary
+    from utils.kpis import attrition_rate, attrition_summary, cost_of_attrition
 
     df = load_data()
     summary = attrition_summary(df)
+    cost = cost_of_attrition(df)
     top_dept = attrition_rate(df, "Department").sort_values("Rate", ascending=False).iloc[0]
     ot_rate = df[df["OverTime"] == "Yes"]["Attrition"].mean() * 100
     non_ot_rate = df[df["OverTime"] == "No"]["Attrition"].mean() * 100
@@ -1126,26 +1195,53 @@ def render_sidebar():
     st.sidebar.page_link("pages/06_Compensation.py", label="Compensation")
     st.sidebar.page_link("pages/07_Executive_Summary.py", label="Executive Summary")
     st.sidebar.page_link("pages/08_Cohort_Analysis.py", label="Cohort Analysis")
+    st.sidebar.page_link("pages/09_What_If_Simulator.py", label="What-If Simulator")
+    st.sidebar.page_link("pages/10_Survival_Analysis.py", label="Survival Analysis")
+    st.sidebar.page_link("pages/11_Retention_ROI.py", label="Retention ROI")
+    st.sidebar.page_link("pages/12_Recommendations.py", label="Action Plan")
     st.sidebar.markdown("---")
-    st.sidebar.markdown(
-        f"""
-        <div class="pan-sidebar-snapshot">
-            <div class="pan-sidebar-snapshot-title">Live Snapshot</div>
-            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Headcount</span><span class="pan-snapshot-value">{summary['total']:,}</span></div>
-            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Attrition</span><span class="pan-snapshot-value alert">{summary['rate']}%</span></div>
-            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Exited</span><span class="pan-snapshot-value">{summary['left']:,}</span></div>
-            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Retained</span><span class="pan-snapshot-value good">{summary['stayed']:,}</span></div>
-            <div class="pan-snapshot-row"><span class="pan-snapshot-label">Hotspot</span><span class="pan-snapshot-value">{top_dept['Department']}</span></div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    avg_risk = st.session_state.get("avg_risk_score")
+    avg_risk_row = (
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Avg Risk Score</span><span class="pan-snapshot-value">{avg_risk:.1f}</span></div>'
+        if avg_risk is not None
+        else ""
     )
+    snapshot_html = (
+        '<div class="pan-sidebar-snapshot">'
+        '<div class="pan-sidebar-snapshot-title">Live Snapshot</div>'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Headcount</span><span class="pan-snapshot-value">{summary["total"]:,}</span></div>'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Attrition</span><span class="pan-snapshot-value alert">{summary["rate"]}%</span></div>'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Exited</span><span class="pan-snapshot-value">{summary["left"]:,}</span></div>'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Retained</span><span class="pan-snapshot-value good">{summary["stayed"]:,}</span></div>'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Hotspot</span><span class="pan-snapshot-value">{top_dept["Department"]}</span></div>'
+        f'{avg_risk_row}'
+        f'<div class="pan-snapshot-row"><span class="pan-snapshot-label">Est. Annual Cost</span><span class="pan-snapshot-value">&#36;{cost["total_annual_cost"]:,.0f}</span></div>'
+        "</div>"
+    )
+    st.sidebar.markdown(snapshot_html, unsafe_allow_html=True)
     st.sidebar.markdown("---")
 
 
 def render_global_filters(df: pd.DataFrame) -> pd.DataFrame:
     """Render reusable sidebar filters and store the filtered frame in session state."""
+    from utils.config import JOB_LEVEL_LABELS
+
     st.sidebar.markdown("### Global Workforce Filters")
+    filter_keys = [
+        "g_depts",
+        "g_roles",
+        "g_tenure",
+        "g_overtime",
+        "g_travel",
+        "g_gender",
+        "g_education_field",
+        "g_job_level",
+        "g_attrition_only",
+    ]
+    if st.sidebar.button("Reset All Filters", use_container_width=True):
+        for key in filter_keys:
+            st.session_state.pop(key, None)
+        st.rerun()
     departments = sorted(df["Department"].dropna().unique())
     dept_default = [dept for dept in st.session_state.get("g_depts", departments) if dept in departments] or departments
     selected_depts = st.sidebar.multiselect("Department", departments, default=dept_default, key="g_depts")
@@ -1177,6 +1273,19 @@ def render_global_filters(df: pd.DataFrame) -> pd.DataFrame:
     gender = sorted(df["Gender"].dropna().unique())
     gender_default = [item for item in st.session_state.get("g_gender", gender) if item in gender] or gender
     selected_gender = st.sidebar.multiselect("Gender", gender, default=gender_default, key="g_gender")
+    edu_fields = sorted(df["EducationField"].dropna().unique())
+    edu_default = [item for item in st.session_state.get("g_education_field", edu_fields) if item in edu_fields] or edu_fields
+    selected_edu = st.sidebar.multiselect("Education Field", edu_fields, default=edu_default, key="g_education_field")
+    job_levels = sorted(df["JobLevel"].dropna().unique())
+    level_default = [item for item in st.session_state.get("g_job_level", job_levels) if item in job_levels] or job_levels
+    selected_levels = st.sidebar.multiselect(
+        "Job Level",
+        job_levels,
+        default=level_default,
+        key="g_job_level",
+        format_func=lambda value: JOB_LEVEL_LABELS.get(value, str(value)),
+    )
+    attrition_only = st.sidebar.toggle("Show Exited Employees Only", key="g_attrition_only")
     filtered = df[
         df["Department"].isin(selected_depts)
         & df["JobRole"].isin(selected_roles)
@@ -1184,7 +1293,11 @@ def render_global_filters(df: pd.DataFrame) -> pd.DataFrame:
         & df["OverTime"].isin(overtime)
         & df["BusinessTravel"].isin(selected_travel)
         & df["Gender"].isin(selected_gender)
+        & df["EducationField"].isin(selected_edu)
+        & df["JobLevel"].isin(selected_levels)
     ]
+    if attrition_only:
+        filtered = filtered[filtered["Attrition"] == 1]
     st.sidebar.markdown("---")
     pct = len(filtered) / len(df) * 100 if len(df) else 0
     st.sidebar.metric("Filtered Records", f"{len(filtered):,}", delta=f"{pct:.0f}% of workforce")
@@ -1259,6 +1372,28 @@ def alert_card(body: str) -> None:
         f'<div class="pan-alert-card"><span class="pan-alert-icon">⚠</span>{body}</div>',
         unsafe_allow_html=True,
     )
+
+
+def roi_card(value: str, label: str, go: bool = True) -> None:
+    """Render a compact ROI decision card."""
+    cls = "pan-roi-card pan-go" if go else "pan-roi-card pan-nogo"
+    st.markdown(
+        f'<div class="{cls}"><div class="pan-roi-value">{value}</div><div class="pan-roi-label">{label}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def benchmark_table(rows: list[dict]) -> None:
+    """Render a benchmark comparison table with status indicators."""
+    html = "<table><thead><tr><th>Metric</th><th>Company</th><th>Industry Avg</th><th>Status</th></tr></thead><tbody>"
+    for row in rows:
+        status_icon = "Good" if row["status"] == "good" else ("Watch" if row["status"] == "warn" else "Risk")
+        html += (
+            f'<tr><td>{row["metric"]}</td><td><strong>{row["company"]}</strong></td>'
+            f'<td>{row["industry"]}</td><td>{status_icon}</td></tr>'
+        )
+    html += "</tbody></table>"
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def risk_badge(rate: float, baseline: float) -> str:

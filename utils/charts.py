@@ -246,3 +246,87 @@ def polish(fig: go.Figure, height: int = 400, title: str | None = None) -> go.Fi
         automargin=True,
     )
     return fig
+
+
+def gauge_chart(
+    value: float,
+    title: str = "Risk Score",
+    low_threshold: float = 30,
+    high_threshold: float = 60,
+) -> go.Figure:
+    """Create a Plotly gauge chart for risk scores."""
+    if value >= high_threshold:
+        bar_color = DEEP_NAVY
+    elif value >= low_threshold:
+        bar_color = STEEL_BLUE
+    else:
+        bar_color = "#476F67"
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number+delta",
+            value=value,
+            delta={"reference": 50, "suffix": " vs mid"},
+            title={"text": title, "font": {"size": 16, "family": "DM Sans"}},
+            gauge={
+                "axis": {"range": [0, 100], "tickwidth": 1},
+                "bar": {"color": bar_color, "thickness": 0.25},
+                "steps": [
+                    {"range": [0, low_threshold], "color": IVORY},
+                    {"range": [low_threshold, high_threshold], "color": CALM_CYAN},
+                    {"range": [high_threshold, 100], "color": STONE},
+                ],
+                "threshold": {
+                    "line": {"color": DEEP_NAVY, "width": 4},
+                    "thickness": 0.75,
+                    "value": value,
+                },
+            },
+        )
+    )
+    return polish(fig, 300)
+
+
+def km_curve_chart(
+    km_df: pd.DataFrame,
+    ci_df: pd.DataFrame | None,
+    group_col: str | None = None,
+    title: str = "Survival Curve",
+) -> go.Figure:
+    """Build a Plotly Kaplan-Meier survival curve with CI bands."""
+    colors = [DEEP_NAVY, STEEL_BLUE, CALM_CYAN, "#476F67", STONE, AMBER]
+    fig = go.Figure()
+    groups = km_df[group_col].dropna().unique() if group_col and group_col in km_df.columns else [None]
+    for i, group in enumerate(groups):
+        if group is None:
+            subset = km_df
+            ci_sub = ci_df
+            name = "All Employees"
+        else:
+            subset = km_df[km_df[group_col] == group]
+            ci_sub = ci_df[ci_df[group_col] == group] if ci_df is not None and group_col in ci_df.columns else None
+            name = str(group)
+        color = colors[i % len(colors)]
+        fig.add_trace(
+            go.Scatter(
+                x=subset["timeline"],
+                y=subset["KM_estimate"],
+                mode="lines",
+                name=name,
+                line=dict(color=color, width=2.6),
+            )
+        )
+        if ci_sub is not None and not ci_sub.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=list(ci_sub["timeline"]) + list(ci_sub["timeline"].iloc[::-1]),
+                    y=list(ci_sub["KM_estimate_upper_0.95"]) + list(ci_sub["KM_estimate_lower_0.95"].iloc[::-1]),
+                    fill="toself",
+                    fillcolor=f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, 0.12)",
+                    line=dict(width=0),
+                    showlegend=False,
+                    name=f"{name} CI",
+                )
+            )
+    fig.update_yaxes(range=[0, 1.05], title_text="Survival Probability")
+    fig.update_xaxes(title_text="Years at Company")
+    return polish(fig, 450, title=title)

@@ -125,6 +125,43 @@ fig.update_layout(showlegend=False)
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_f))
 
+section_divider("Training and Manager Tenure")
+tm1, tm2 = st.columns(2)
+with tm1:
+    st.subheader("Training Gap vs Attrition")
+    train_df = df_f.assign(TrainingCohort=df_f["TrainingTimesLastYear"].apply(lambda value: "No Training" if value == 0 else "1+ Sessions"))
+    train_rate = attrition_rate(train_df, "TrainingCohort")
+    fig = px.bar(train_rate, x="TrainingCohort", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
+    fig.update_traces(texttemplate="%{text}%", textposition="outside")
+    polish(fig, 350, title="Training Gap vs Attrition")
+    fig.update_layout(coloraxis_showscale=False)
+    st.plotly_chart(fig, use_container_width=True)
+    if not train_rate.empty:
+        top_train = train_rate.sort_values("Rate", ascending=False).iloc[0]
+        insight_card("Training Gap Signal", f"{top_train['TrainingCohort']} employees show {top_train['Rate']:.1f}% attrition under current filters.")
+with tm2:
+    st.subheader("Manager Tenure Impact")
+    mgr_rate = attrition_rate(df_f, "ManagerTenureBand")
+    fig = px.bar(mgr_rate, x="ManagerTenureBand", y="Rate", color="Rate", color_continuous_scale=RATE_SCALE, text="Rate")
+    fig.update_traces(texttemplate="%{text}%", textposition="outside")
+    polish(fig, 350, title="Manager Tenure Band vs Attrition")
+    fig.update_layout(coloraxis_showscale=False)
+    st.plotly_chart(fig, use_container_width=True)
+    insight_card("Manager Tenure Signal", "Short manager tenure can indicate team disruption, unclear coaching routines, or transition risk.")
+
+st.subheader("Protective Factor Waterfall")
+baseline_rate = df_f["Attrition"].mean() * 100
+high_tenure_rate = df_f[df_f["YearsAtCompany"] >= 5]["Attrition"].mean() * 100 if (df_f["YearsAtCompany"] >= 5).any() else baseline_rate
+stock_rate = df_f[df_f["StockOptionLevel"] > 0]["Attrition"].mean() * 100 if (df_f["StockOptionLevel"] > 0).any() else baseline_rate
+training_rate = df_f[df_f["TrainingTimesLastYear"] >= 2]["Attrition"].mean() * 100 if (df_f["TrainingTimesLastYear"] >= 2).any() else baseline_rate
+fig = waterfall(
+    ["Baseline", "5+ Yr Tenure", "Stock Options", "Frequent Training"],
+    [baseline_rate, high_tenure_rate - baseline_rate, stock_rate - baseline_rate, training_rate - baseline_rate],
+    title="Protective Factor Attrition Contribution",
+)
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_f))
+
 with st.expander("Analytical Findings"):
     top_tenure = attrition_rate(df_f, "TenureBucket").sort_values("Rate", ascending=False).iloc[0]
     top_travel = attrition_rate(df_f, "BusinessTravel").sort_values("Rate", ascending=False).iloc[0]

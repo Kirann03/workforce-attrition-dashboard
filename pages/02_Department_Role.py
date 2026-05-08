@@ -89,6 +89,7 @@ with col2:
     fig = go.Figure()
     fig.add_trace(go.Bar(x=dept_rate["Rate"], y=dept_rate["Department"], orientation="h", text=dept_rate["Rate"], marker_color=DEEP_NAVY))
     fig.add_vline(x=baseline, line_dash="dash", line_color=DEEP_NAVY, annotation_text=f"Baseline {baseline:.1f}%")
+    fig.add_vline(x=13, line_dash="dot", line_color="#8A6F52", annotation_text="Industry 13.0%")
     fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
     polish(fig, 380)
     fig.update_layout(xaxis_title="Attrition Rate (%)", yaxis_title="")
@@ -117,15 +118,36 @@ with tab_count:
     st.plotly_chart(fig, use_container_width=True)
     chart_caption(len(df_filtered))
 
+st.subheader("Department and Role Risk Treemap")
+fig = px.treemap(
+    role_dept,
+    path=["Department", "JobRole"],
+    values="Total",
+    color="Rate",
+    color_continuous_scale=RATE_SCALE,
+    hover_data={"Left": True, "Rate": ":.1f"},
+)
+polish(fig, 430, title="Exit Volume and Attrition Rate by Department and Role")
+st.plotly_chart(fig, use_container_width=True)
+chart_caption(len(df_filtered))
+
 section_divider("Exit Flow")
-st.subheader("Department to Role Exit Flow")
-exit_flow = role_dept[role_dept["Left"] > 0].copy()
-departments_nodes = exit_flow["Department"].drop_duplicates().tolist()
-roles_nodes = exit_flow["JobRole"].drop_duplicates().tolist()
-labels = departments_nodes + roles_nodes
-sources = exit_flow["Department"].map({name: idx for idx, name in enumerate(labels)}).tolist()
-targets = exit_flow["JobRole"].map({name: idx for idx, name in enumerate(labels)}).tolist()
-fig = sankey(labels, sources, targets, exit_flow["Left"].tolist(), title="Department to Role Exit Flow")
+st.subheader("Department to Role to Outcome Flow")
+status_flow = df_filtered.groupby(["Department", "JobRole", "Attrition_Label"], observed=False).size().reset_index(name="Count")
+status_flow = status_flow[status_flow["Count"] > 0]
+dept_nodes = status_flow["Department"].drop_duplicates().tolist()
+role_nodes = status_flow["JobRole"].drop_duplicates().tolist()
+status_nodes = ["Left", "Stayed"]
+labels = dept_nodes + role_nodes + status_nodes
+node_map = {name: idx for idx, name in enumerate(labels)}
+dept_role = status_flow.groupby(["Department", "JobRole"], observed=False)["Count"].sum().reset_index()
+sources = dept_role["Department"].map(node_map).tolist()
+targets = dept_role["JobRole"].map(node_map).tolist()
+values = dept_role["Count"].tolist()
+sources += status_flow["JobRole"].map(node_map).tolist()
+targets += status_flow["Attrition_Label"].map(node_map).tolist()
+values += status_flow["Count"].tolist()
+fig = sankey(labels, sources, targets, values, title="Department to Role to Outcome Flow")
 st.plotly_chart(fig, use_container_width=True)
 chart_caption(len(df_filtered))
 

@@ -132,3 +132,54 @@ def satisfaction_risk_matrix(df: pd.DataFrame, sat_col: str, workload_col: str) 
     ).reset_index()
     grouped["Rate"] = (grouped["Left"] / grouped["Total"] * 100).fillna(0).round(2)
     return grouped
+
+
+def cost_of_attrition(
+    df: pd.DataFrame,
+    replacement_pct: float = 0.50,
+    recruitment_cost: float = 5000,
+    training_cost: float = 3000,
+    productivity_months: int = 3,
+    productivity_pct: float = 0.25,
+) -> dict:
+    """Compute estimated total annual cost of attrition."""
+    n_exits = int(df["Attrition"].sum())
+    avg_annual_salary = df["MonthlyIncome"].mean() * 12 if len(df) else 0
+    cost_per_exit = (
+        avg_annual_salary * replacement_pct
+        + recruitment_cost
+        + training_cost
+        + (avg_annual_salary / 12) * productivity_months * productivity_pct
+    )
+    total_cost = cost_per_exit * n_exits
+    return {
+        "n_exits": n_exits,
+        "avg_annual_salary": round(avg_annual_salary, 0),
+        "cost_per_exit": round(cost_per_exit, 0),
+        "total_annual_cost": round(total_cost, 0),
+    }
+
+
+def cramers_v(df: pd.DataFrame, col1: str, col2: str) -> float:
+    """Compute Cramer's V effect size for two categorical variables."""
+    table = pd.crosstab(df[col1], df[col2])
+    if table.empty or min(table.shape) < 2:
+        return 0.0
+    chi2, _, _, _ = stats.chi2_contingency(table)
+    n = table.sum().sum()
+    r, c = table.shape
+    denom = n * (min(r, c) - 1)
+    return float(np.sqrt(chi2 / denom)) if denom else 0.0
+
+
+def retention_roi(current_cost: float, reduction_pct: float, program_cost: float) -> dict:
+    """Compute ROI of a proposed retention program."""
+    savings = current_cost * (reduction_pct / 100)
+    net = savings - program_cost
+    roi = (net / program_cost * 100) if program_cost > 0 else 0
+    return {
+        "gross_savings": round(savings, 0),
+        "net_savings": round(net, 0),
+        "roi_pct": round(roi, 1),
+        "break_even": roi > 0,
+    }
