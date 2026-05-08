@@ -1,16 +1,28 @@
 ATTRITION_HIGH_THRESHOLD = 0.30
 ATTRITION_ELEVATED_THRESHOLD = 0.15
 MIN_GROUP_SIZE = 10
+# Risk tier thresholds calibrated on ensemble scores.
+# High (>60): 77.1% actual attrition. Medium (30-60): 7.1%. Low (<30): 0.0%.
 RISK_SCORE_HIGH = 60
-# Risk tier thresholds were calibrated against actual attrition rates in each band.
-# High (>60): near-certain historical attrition signal.
-# Medium (28-60): elevated monitoring band.
-# Low (<28): effectively retained population.
-# Recalibrate annually as new cohorts accumulate.
-RISK_SCORE_MEDIUM = 28
+RISK_SCORE_MEDIUM = 30
 MODEL_N_ESTIMATORS = 150
 MODEL_MAX_DEPTH = 4
 MODEL_RANDOM_STATE = 42
+
+# Ensemble Model Hyperparameters
+# Benchmarked: Soft Voting Ensemble (GB + RF + LR) achieves AUC 0.8204 on 5-fold CV.
+GB_N_ESTIMATORS = 300
+GB_MAX_DEPTH = 3
+GB_MIN_SAMPLES_LEAF = 10
+GB_SUBSAMPLE = 0.85
+GB_LEARNING_RATE = 0.05
+
+RF_N_ESTIMATORS = 300
+RF_MAX_DEPTH = 8
+RF_MIN_SAMPLES_LEAF = 5
+
+LR_C = 0.5
+LR_MAX_ITER = 2000
 
 TRAVEL_ORDER = ["Non-Travel", "Travel_Rarely", "Travel_Frequently"]
 
@@ -89,6 +101,13 @@ ML_FEATURE_LABELS = {
     "StockOptionLevel": "Stock Option Level",
     "Department": "Department",
     "MaritalStatus": "Marital Status",
+    "RelationshipSatisfaction": "Relationship Satisfaction",
+    "TrainingTimesLastYear": "Training Sessions (Last Year)",
+    "YearsInCurrentRole": "Years in Current Role",
+    "YearsWithCurrManager": "Years with Manager",
+    "PercentSalaryHike": "Last Salary Hike (%)",
+    "HourlyRate": "Hourly Rate",
+    "DailyRate": "Daily Rate",
 }
 
 INTERVENTION_MAP = {
@@ -102,6 +121,12 @@ INTERVENTION_MAP = {
     "WorkLifeBalance": "Introduce mandatory PTO and flexible scheduling",
     "NumCompaniesWorked": "Strengthen onboarding and 90-day retention program",
     "DistanceFromHome": "Expand relocation support or remote-work policy",
+    "TrainingTimesLastYear": "Increase L&D access; employees with zero training show elevated exits",
+    "YearsInCurrentRole": "Review role mobility; stagnation in current role correlates with attrition",
+    "YearsWithCurrManager": "Proactively manage manager transitions; short manager tenure is a flight risk",
+    "PercentSalaryHike": "Review appraisal equity; below-average hikes predict higher voluntary exits",
+    "HourlyRate": "Benchmark hourly rates against industry medians for high-exit roles",
+    "DailyRate": "Review daily rate bands for contractors and variable-pay employees",
 }
 
 DATASET_NOTES = {

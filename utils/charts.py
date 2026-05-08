@@ -10,6 +10,7 @@ CALM_CYAN = "#ACCCD8"
 MINT = "#F0E2CD"
 IVORY = "#F0F1DF"
 STONE = "#C9BDAE"
+AMBER = "#8A6F52"
 RATE_SCALE = [IVORY, MINT, CALM_CYAN, STEEL_BLUE, DEEP_NAVY]
 EXIT_SCALE = [IVORY, MINT, CALM_CYAN, STEEL_BLUE, DEEP_NAVY]
 
@@ -166,8 +167,8 @@ def stacked_100_bar(data: pd.DataFrame, x: str, color_col: str, title: str | Non
     return polish(fig, height, title=title)
 
 
-def polish(fig: go.Figure, height: int | None = None, title: str | None = None) -> go.Figure:
-    """Apply the shared enterprise Plotly styling."""
+def polish(fig: go.Figure, height: int = 400, title: str | None = None) -> go.Figure:
+    """Apply the pan_professional theme and standard sizing to any Plotly figure."""
     fig.update_layout(template="pan_professional")
     axis_title_map = {
         "Rate": "Attrition Rate (%)",
@@ -196,17 +197,38 @@ def polish(fig: go.Figure, height: int | None = None, title: str | None = None) 
         fig.update_xaxes(title_text=axis_title_map[x_title])
     if y_title in axis_title_map:
         fig.update_yaxes(title_text=axis_title_map[y_title])
-    fig.update_layout(
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
-        font=dict(color="#1D2638", family="DM Sans, Segoe UI, Arial, sans-serif"),
-        margin=dict(l=64, r=34, t=30 if title is None else 68, b=92),
-        legend=dict(
-            bgcolor="rgba(255,255,255,0)",
-            font=dict(color="#1D2638", size=12),
-            title_font=dict(color="#1D2638", size=12),
-        ),
-    )
+    updates: dict = {
+        "height": height,
+        "template": "pan_professional",
+        "paper_bgcolor": "#FFFFFF",
+        "plot_bgcolor": "#FFFFFF",
+        "font": {"family": "DM Sans, Segoe UI, Arial, sans-serif", "size": 13, "color": "#1D2638"},
+        "margin": {"l": 60, "r": 30, "t": 44 if title else 22, "b": 64},
+        "hoverlabel": {
+            "bgcolor": "#313A55",
+            "font_color": "#FFFFFF",
+            "font_size": 12,
+            "font_family": "DM Sans, Segoe UI, Arial, sans-serif",
+            "bordercolor": "#313A55",
+        },
+        "legend": {
+            "bgcolor": "rgba(255,255,255,0)",
+            "font": {"color": "#1D2638", "size": 12},
+            "title_font": {"color": "#1D2638", "size": 12},
+        },
+    }
+    if title:
+        updates["title"] = {
+            "text": title,
+            "font": {"size": 15, "color": "#1D2638", "family": "DM Sans, Segoe UI, Arial, sans-serif"},
+            "x": 0.02,
+            "xanchor": "left",
+            "y": 0.97,
+            "yanchor": "top",
+        }
+    else:
+        updates["title"] = {"text": ""}
+    fig.update_layout(**updates)
     fig.update_xaxes(
         gridcolor="rgba(130, 169, 199, 0.22)",
         linecolor="rgba(49, 58, 85, 0.22)",
@@ -223,17 +245,4 @@ def polish(fig: go.Figure, height: int | None = None, title: str | None = None) 
         title_font=dict(color="#1D2638"),
         automargin=True,
     )
-    if height:
-        fig.update_layout(height=height)
-    if title:
-        fig.update_layout(
-            title=dict(
-                text=title,
-                x=0.02,
-                xanchor="left",
-                font=dict(size=17, color="#1D2638", family="DM Sans, Segoe UI, Arial, sans-serif"),
-            )
-        )
-    else:
-        fig.update_layout(title=dict(text=""))
     return fig

@@ -742,6 +742,315 @@ def apply_theme():
         .pan-hero, .pan-page-head, div[data-testid="stMetric"] {{
             animation: fadeSlideUp 0.35s ease;
         }}
+
+        div[data-testid="stMetric"] {{
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(201, 189, 174, 0.40) !important;
+            border-radius: 14px !important;
+            padding: 1.1rem 1.25rem 1rem 1.25rem !important;
+            box-shadow: 0 4px 24px rgba(49, 58, 85, 0.09), 0 1px 4px rgba(49, 58, 85, 0.05) !important;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }}
+
+        div[data-testid="stMetric"]::before {{
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--pan-dark), var(--pan-navy));
+            border-radius: 14px 14px 0 0;
+        }}
+
+        div[data-testid="stMetric"]:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(49, 58, 85, 0.14), 0 2px 8px rgba(49, 58, 85, 0.08) !important;
+        }}
+
+        div[data-testid="stMetricLabel"],
+        div[data-testid="stMetricLabel"] p {{
+            font-size: 0.68rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.09em !important;
+            text-transform: uppercase;
+            color: var(--pan-muted) !important;
+        }}
+
+        div[data-testid="stMetricValue"] {{
+            font-size: 1.85rem !important;
+            font-weight: 800 !important;
+            color: var(--pan-text) !important;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }}
+
+        div[data-testid="stMetricDelta"] {{
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            border-radius: 20px;
+            padding: 2px 8px;
+            display: inline-block;
+            margin-top: 4px;
+        }}
+
+        @keyframes fadeSlideUp {{
+            from {{ opacity: 0; transform: translateY(8px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+
+        .pan-hero, .pan-page-head {{
+            animation: fadeSlideUp 0.4s ease both;
+        }}
+
+        div[data-testid="stMetric"] {{
+            animation: fadeSlideUp 0.35s ease both;
+        }}
+
+        button[data-baseweb="tab"] {{
+            font-size: 0.82rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.02em;
+            border-radius: 8px 8px 0 0 !important;
+            padding: 0.55rem 1.1rem !important;
+            color: var(--pan-muted) !important;
+            transition: color 0.15s ease, background 0.15s ease;
+        }}
+
+        button[data-baseweb="tab"][aria-selected="true"] {{
+            color: var(--pan-text) !important;
+            background: rgba(130, 169, 199, 0.12) !important;
+            border-bottom: 2px solid var(--pan-dark) !important;
+        }}
+
+        button[data-baseweb="tab"]:hover {{
+            color: var(--pan-text) !important;
+            background: rgba(201, 189, 174, 0.15) !important;
+        }}
+
+        details[data-testid="stExpander"] > summary {{
+            background: rgba(255, 255, 255, 0.75) !important;
+            border: 1px solid rgba(201, 189, 174, 0.4) !important;
+            border-radius: 10px !important;
+            padding: 0.75rem 1rem !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            transition: background 0.15s ease;
+        }}
+
+        details[data-testid="stExpander"] > summary:hover {{
+            background: rgba(240, 226, 205, 0.35) !important;
+        }}
+
+        details[data-testid="stExpander"][open] > summary {{
+            border-radius: 10px 10px 0 0 !important;
+            border-bottom-color: transparent !important;
+            background: rgba(130, 169, 199, 0.10) !important;
+        }}
+
+        details[data-testid="stExpander"] > div {{
+            border: 1px solid rgba(201, 189, 174, 0.4) !important;
+            border-top: none !important;
+            border-radius: 0 0 10px 10px !important;
+            padding: 1rem 1.1rem !important;
+            background: rgba(255, 255, 255, 0.6) !important;
+        }}
+
+        div[data-testid="stDataFrame"] {{
+            border: 1px solid rgba(201, 189, 174, 0.35) !important;
+            border-radius: 10px !important;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(49, 58, 85, 0.06);
+        }}
+
+        div[data-baseweb="select"] > div,
+        div[data-baseweb="multi-select"] > div {{
+            border-color: rgba(130, 169, 199, 0.55) !important;
+            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            font-size: 0.88rem !important;
+            transition: border-color 0.15s ease;
+        }}
+
+        div[data-baseweb="select"] > div:hover,
+        div[data-baseweb="multi-select"] > div:hover {{
+            border-color: var(--pan-navy) !important;
+        }}
+
+        div[data-testid="stSlider"] > div > div > div[role="slider"] {{
+            background: var(--pan-dark) !important;
+            border: 2px solid #FFFFFF !important;
+            box-shadow: 0 2px 8px rgba(49, 58, 85, 0.25) !important;
+        }}
+
+        div[data-testid="stSlider"] > div > div > div[data-baseweb="slider"] > div:first-child {{
+            background: linear-gradient(90deg, var(--pan-dark), var(--pan-navy)) !important;
+        }}
+
+        div[data-testid="stPlotlyChart"] {{
+            background: #FFFFFF !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(201, 189, 174, 0.30) !important;
+            box-shadow: 0 3px 16px rgba(49, 58, 85, 0.07) !important;
+            padding: 0.5rem !important;
+            transition: box-shadow 0.18s ease;
+        }}
+
+        div[data-testid="stPlotlyChart"]:hover {{
+            box-shadow: 0 6px 28px rgba(49, 58, 85, 0.11) !important;
+        }}
+
+        div[data-testid="stAlert"] {{
+            border-radius: 10px !important;
+            border-left-width: 4px !important;
+            font-size: 0.88rem !important;
+            font-weight: 500;
+        }}
+
+        div[data-testid="stAlert"][data-type="info"] {{
+            background: rgba(172, 204, 216, 0.18) !important;
+            border-left-color: var(--pan-navy) !important;
+        }}
+
+        div[data-testid="stAlert"][data-type="warning"] {{
+            background: rgba(240, 226, 205, 0.45) !important;
+            border-left-color: var(--pan-amber) !important;
+        }}
+
+        div[data-testid="stAlert"][data-type="success"] {{
+            background: rgba(71, 111, 103, 0.12) !important;
+            border-left-color: var(--pan-green) !important;
+        }}
+
+        div[data-testid="stAlert"][data-type="error"] {{
+            background: rgba(192, 57, 43, 0.10) !important;
+            border-left-color: #C0392B !important;
+        }}
+
+        div[data-testid="stSpinner"] > div {{
+            border-top-color: var(--pan-dark) !important;
+        }}
+
+        div[data-testid="stSpinner"] p {{
+            font-size: 0.85rem !important;
+            color: var(--pan-muted) !important;
+            font-weight: 500;
+        }}
+
+        .pan-section-divider {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.75rem 0 1.25rem 0;
+        }}
+
+        .pan-section-divider-line {{
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(130, 169, 199, 0.45), transparent);
+        }}
+
+        .pan-section-divider-label {{
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--pan-muted);
+            white-space: nowrap;
+            padding: 0 0.25rem;
+        }}
+
+        .pan-hr {{
+            border: none;
+            border-top: 1px solid rgba(130, 169, 199, 0.30);
+            margin: 1.5rem 0;
+        }}
+
+        .pan-insight-card {{
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: rgba(172, 204, 216, 0.14);
+            border: 1px solid rgba(130, 169, 199, 0.35);
+            border-left: 4px solid var(--pan-navy);
+            border-radius: 10px;
+            padding: 1rem 1.15rem;
+            margin: 0.75rem 0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+        }}
+
+        .pan-insight-icon {{
+            font-size: 1.3rem;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }}
+
+        .pan-insight-title {{
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: var(--pan-text);
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.01em;
+        }}
+
+        .pan-insight-body {{
+            font-size: 0.87rem;
+            color: var(--pan-muted);
+            line-height: 1.6;
+        }}
+
+        .pan-alert-card {{
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            background: rgba(240, 226, 205, 0.55);
+            border: 1px solid rgba(138, 111, 82, 0.35);
+            border-left: 4px solid var(--pan-amber);
+            border-radius: 10px;
+            padding: 0.9rem 1.1rem;
+            margin: 0.5rem 0;
+            font-size: 0.87rem;
+            color: var(--pan-text);
+        }}
+
+        .pan-alert-icon {{
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            color: var(--pan-amber);
+        }}
+
+        .pan-page-head {{
+            background:
+                repeating-linear-gradient(0deg, rgba(130, 169, 199, 0.04) 0px, rgba(130, 169, 199, 0.04) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, rgba(130, 169, 199, 0.04) 0px, rgba(130, 169, 199, 0.04) 1px, transparent 1px, transparent 40px),
+                linear-gradient(135deg, var(--pan-dark) 0%, #455976 100%) !important;
+            border-radius: 16px !important;
+            padding: 2rem 2.5rem !important;
+            margin-bottom: 1.75rem !important;
+            position: relative;
+            overflow: hidden;
+        }}
+
+        .pan-page-head::after {{
+            content: "";
+            position: absolute;
+            top: -30%;
+            right: -5%;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(172, 204, 216, 0.18), transparent 70%);
+            pointer-events: none;
+        }}
+
+        .pan-page-head h1,
+        .pan-page-head p {{
+            color: #FFFFFF !important;
+            position: relative;
+            z-index: 1;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -928,12 +1237,16 @@ def hero(title: str, subtitle: str, eyebrow: str = "Palo Alto Networks") -> None
     )
 
 
-def insight_card(title: str, body: str, icon: str = "Insight") -> None:
+def insight_card(title: str, body: str, icon: str = "💡") -> None:
+    """Styled insight card with icon, title, and body text."""
     st.markdown(
         f"""
-        <div class="pan-insight">
-            <strong>{icon} | {title}</strong><br>
-            <span>{body}</span>
+        <div class="pan-insight-card">
+            <div class="pan-insight-icon">{icon}</div>
+            <div>
+                <div class="pan-insight-title">{title}</div>
+                <div class="pan-insight-body">{body}</div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -941,7 +1254,11 @@ def insight_card(title: str, body: str, icon: str = "Insight") -> None:
 
 
 def alert_card(body: str) -> None:
-    st.markdown(f'<div class="pan-alert">{body}</div>', unsafe_allow_html=True)
+    """Styled alert card for high-priority warnings."""
+    st.markdown(
+        f'<div class="pan-alert-card"><span class="pan-alert-icon">⚠</span>{body}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def risk_badge(rate: float, baseline: float) -> str:
@@ -971,8 +1288,20 @@ def data_quality_banner(df: pd.DataFrame) -> None:
 
 
 def section_divider(label: str = "") -> None:
-    label_html = f"<span>{label}</span>" if label else "<span></span>"
-    st.markdown(f'<div class="pan-divider">{label_html}</div>', unsafe_allow_html=True)
+    """Render a styled section divider with optional label."""
+    if label:
+        st.markdown(
+            f"""
+            <div class="pan-section-divider">
+                <span class="pan-section-divider-line"></span>
+                <span class="pan-section-divider-label">{label}</span>
+                <span class="pan-section-divider-line"></span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown('<hr class="pan-hr">', unsafe_allow_html=True)
 
 
 def chart_caption(n: int, suffix: str = "") -> None:
