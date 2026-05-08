@@ -6,7 +6,7 @@ from utils.charts import RATE_SCALE, STATUS_COLORS, polish, waterfall
 from utils.config import PROMOTION_STAGNATION_BINS, PROMOTION_STAGNATION_LABELS
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, attrition_with_ci
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, insight_card, page_header, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, insight_card, page_header, render_global_filters, render_sidebar, section_divider
 
 
 st.set_page_config(page_title="Tenure & Workload Analysis", page_icon="⏱️", layout="wide", initial_sidebar_state="expanded")
@@ -23,29 +23,7 @@ page_header(
     ["Tenure range", "Overtime", "Business travel", "Promotion stagnation"],
 )
 
-st.sidebar.header("Workforce Filters")
-departments = sorted(df["Department"].dropna().unique().tolist())
-selected_depts = st.sidebar.multiselect("Department", departments, default=departments)
-roles = sorted(df[df["Department"].isin(selected_depts)]["JobRole"].dropna().unique().tolist())
-selected_roles = st.sidebar.multiselect("Job Role", roles, default=roles)
-overtime_options = ["Yes", "No"]
-travel_options = sorted(df["BusinessTravel"].dropna().unique().tolist())
-ot_toggle = st.sidebar.multiselect("OverTime", overtime_options, default=overtime_options)
-travel_toggle = st.sidebar.multiselect("Business Travel", travel_options, default=travel_options)
-tenure_range = st.sidebar.slider(
-    "Years at Company",
-    min_value=int(df["YearsAtCompany"].min()),
-    max_value=int(df["YearsAtCompany"].max()),
-    value=(int(df["YearsAtCompany"].min()), int(df["YearsAtCompany"].max())),
-)
-df_f = df[
-    df["Department"].isin(selected_depts)
-    & df["JobRole"].isin(selected_roles)
-    & df["OverTime"].isin(ot_toggle)
-    & df["BusinessTravel"].isin(travel_toggle)
-    & df["YearsAtCompany"].between(tenure_range[0], tenure_range[1])
-]
-st.sidebar.metric("Filtered Records", len(df_f))
+df_f = render_global_filters(df)
 
 if df_f.empty:
     st.warning("No data matches the selected filters.")

@@ -1,6 +1,13 @@
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
 [theme]
 base = "light"
-primaryColor = "#313A55"
 backgroundColor = "#F0F1DF"
 secondaryBackgroundColor = "#FFFFFF"
 textColor = "#1D2638"
@@ -9,10 +16,5 @@ font = "sans serif"
 [client]
 showSidebarNavigation = false
 
-[server]
-headless = true
-enableCORS = false
-enableXsrfProtection = false
-
-[browser]
-gatherUsageStats = false
+[runner]
+fastReruns = true

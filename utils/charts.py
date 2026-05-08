@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -17,7 +18,7 @@ RISK_COLORS = {"High": DEEP_NAVY, "Medium": STEEL_BLUE, "Low": MINT}
 
 pio.templates["pan_professional"] = {
     "layout": {
-        "font": {"family": "Inter, Segoe UI, Arial, sans-serif"},
+        "font": {"family": "DM Sans, Segoe UI, Arial, sans-serif"},
         "paper_bgcolor": "#FFFFFF",
         "plot_bgcolor": "#FFFFFF",
         "colorway": [DEEP_NAVY, STEEL_BLUE, CALM_CYAN, MINT, STONE, "#66728E"],
@@ -40,13 +41,15 @@ pio.templates["pan_professional"] = {
 pio.templates.default = "pan_professional"
 
 
-def add_baseline(fig, baseline_rate, label=None):
+def add_baseline(fig: go.Figure, baseline_rate: float, label: str | None = None) -> go.Figure:
+    """Add an attrition baseline line to a Plotly figure."""
     label = label or f"Baseline {baseline_rate:.1f}%"
     fig.add_hline(y=baseline_rate, line_dash="dash", line_color=DEEP_NAVY, annotation_text=label)
     return fig
 
 
-def sankey(labels, sources, targets, values, title="Flow"):
+def sankey(labels: list, sources: list, targets: list, values: list, title: str = "Flow") -> go.Figure:
+    """Create a styled Sankey flow chart."""
     fig = go.Figure(
         data=[
             go.Sankey(
@@ -58,7 +61,8 @@ def sankey(labels, sources, targets, values, title="Flow"):
     return polish(fig, 420, title=title)
 
 
-def waterfall(labels, values, title="Waterfall"):
+def waterfall(labels: list, values: list, title: str = "Waterfall") -> go.Figure:
+    """Create a styled waterfall chart."""
     fig = go.Figure(
         go.Waterfall(
             x=labels,
@@ -72,7 +76,17 @@ def waterfall(labels, values, title="Waterfall"):
     return polish(fig, 360, title=title)
 
 
-def rate_bar(data, x, y="Rate", text="Rate", color="Rate", height=360, scale=None, title=None):
+def rate_bar(
+    data: pd.DataFrame,
+    x: str,
+    y: str = "Rate",
+    text: str = "Rate",
+    color: str = "Rate",
+    height: int = 360,
+    scale: list[str] | None = None,
+    title: str | None = None,
+) -> go.Figure:
+    """Create a standard attrition-rate bar chart."""
     scale = scale or RATE_SCALE
     fig = px.bar(
         data,
@@ -89,7 +103,71 @@ def rate_bar(data, x, y="Rate", text="Rate", color="Rate", height=360, scale=Non
     return fig
 
 
-def polish(fig, height=None, title=None):
+def grouped_rate_bar(data: pd.DataFrame, x: str, group_col: str, height: int = 380, title: str | None = None) -> go.Figure:
+    """Create a grouped bar chart comparing attrition rates across two dimensions."""
+    fig = px.bar(
+        data,
+        x=x,
+        y="Rate",
+        color=group_col,
+        barmode="group",
+        text="Rate",
+        labels={"Rate": "Attrition Rate (%)"},
+        color_discrete_sequence=[DEEP_NAVY, STEEL_BLUE, CALM_CYAN, MINT],
+    )
+    fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    return polish(fig, height, title=title)
+
+
+def annotated_scatter(
+    data: pd.DataFrame,
+    x: str,
+    y: str,
+    color: str,
+    hover_name: str,
+    size: str | None = None,
+    title: str | None = None,
+    height: int = 460,
+) -> go.Figure:
+    """Create a labeled scatter plot with median quadrant reference lines."""
+    fig = px.scatter(
+        data,
+        x=x,
+        y=y,
+        color=color,
+        hover_name=hover_name,
+        size=size,
+        text=hover_name,
+        color_discrete_sequence=[DEEP_NAVY, STEEL_BLUE, CALM_CYAN, STONE],
+        labels={x: x.replace("_", " "), y: y.replace("_", " ")},
+    )
+    fig.update_traces(textposition="top center", marker=dict(opacity=0.8))
+    fig.add_vline(x=data[x].median(), line_dash="dot", line_color=STONE, opacity=0.6)
+    fig.add_hline(y=data[y].median(), line_dash="dot", line_color=STONE, opacity=0.6)
+    return polish(fig, height, title=title)
+
+
+def stacked_100_bar(data: pd.DataFrame, x: str, color_col: str, title: str | None = None, height: int = 360) -> go.Figure:
+    """Create a 100 percent stacked bar showing composition per group."""
+    totals = data.groupby(x, observed=False)[color_col].transform("sum")
+    chart_data = data.copy()
+    chart_data["Share"] = (chart_data[color_col] / totals * 100).round(1)
+    fig = px.bar(
+        chart_data,
+        x=x,
+        y="Share",
+        color="Attrition_Label" if "Attrition_Label" in chart_data.columns else color_col,
+        barmode="stack",
+        text="Share",
+        color_discrete_map=STATUS_COLORS,
+        labels={"Share": "Share (%)"},
+    )
+    fig.update_traces(texttemplate="%{text:.0f}%", textposition="inside")
+    return polish(fig, height, title=title)
+
+
+def polish(fig: go.Figure, height: int | None = None, title: str | None = None) -> go.Figure:
+    """Apply the shared enterprise Plotly styling."""
     fig.update_layout(template="pan_professional")
     axis_title_map = {
         "Rate": "Attrition Rate (%)",
@@ -121,8 +199,8 @@ def polish(fig, height=None, title=None):
     fig.update_layout(
         paper_bgcolor="#FFFFFF",
         plot_bgcolor="#FFFFFF",
-        font=dict(color="#1D2638", family="Inter, Segoe UI, Arial, sans-serif"),
-        margin=dict(l=64, r=34, t=28 if title is None else 62, b=82),
+        font=dict(color="#1D2638", family="DM Sans, Segoe UI, Arial, sans-serif"),
+        margin=dict(l=64, r=34, t=30 if title is None else 68, b=92),
         legend=dict(
             bgcolor="rgba(255,255,255,0)",
             font=dict(color="#1D2638", size=12),
@@ -153,9 +231,9 @@ def polish(fig, height=None, title=None):
                 text=title,
                 x=0.02,
                 xanchor="left",
-                font=dict(size=17, color="#1D2638", family="Inter, Segoe UI, Arial, sans-serif"),
+                font=dict(size=17, color="#1D2638", family="DM Sans, Segoe UI, Arial, sans-serif"),
             )
         )
     else:
-        fig.update_layout(title=None)
+        fig.update_layout(title=dict(text=""))
     return fig

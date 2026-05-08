@@ -7,7 +7,7 @@ from utils.charts import RATE_SCALE, STATUS_COLORS, polish
 from utils.config import SATISFACTION_COLS, SATISFACTION_LABELS
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, attrition_summary
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
 
 
 st.set_page_config(page_title="Attrition Overview", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
@@ -17,28 +17,7 @@ render_sidebar()
 df_all = load_data()
 data_quality_banner(df_all)
 
-st.sidebar.header("Workforce Filters")
-departments = sorted(df_all["Department"].dropna().unique().tolist())
-selected_depts = st.sidebar.multiselect("Department", departments, default=departments)
-roles = sorted(df_all[df_all["Department"].isin(selected_depts)]["JobRole"].dropna().unique().tolist())
-selected_roles = st.sidebar.multiselect("Job Role", roles, default=roles)
-tenure_range = st.sidebar.slider(
-    "Years at Company",
-    int(df_all["YearsAtCompany"].min()),
-    int(df_all["YearsAtCompany"].max()),
-    (int(df_all["YearsAtCompany"].min()), int(df_all["YearsAtCompany"].max())),
-)
-overtime = st.sidebar.multiselect("OverTime", ["Yes", "No"], default=["Yes", "No"])
-travel = sorted(df_all["BusinessTravel"].dropna().unique().tolist())
-selected_travel = st.sidebar.multiselect("Business Travel", travel, default=travel)
-df = df_all[
-    df_all["Department"].isin(selected_depts)
-    & df_all["JobRole"].isin(selected_roles)
-    & df_all["YearsAtCompany"].between(tenure_range[0], tenure_range[1])
-    & df_all["OverTime"].isin(overtime)
-    & df_all["BusinessTravel"].isin(selected_travel)
-]
-st.sidebar.metric("Filtered Records", len(df))
+df = render_global_filters(df_all)
 
 if df.empty:
     st.warning("No data matches the selected filters.")

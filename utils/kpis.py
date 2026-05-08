@@ -51,8 +51,24 @@ def chi_square_test(df: pd.DataFrame, group_col: str) -> dict:
             "p_value": 1.0,
             "significant": False,
             "interpretation": "Not enough group variation to test independence.",
+            "warning": "Insufficient data.",
         }
     table = pd.crosstab(df[group_col], df["Attrition"])
+    _, _, _, expected = stats.chi2_contingency(table)
+    cells_below_5 = int((expected < 5).sum())
+    total_cells = int(expected.size)
+    if total_cells and cells_below_5 / total_cells > 0.2:
+        return {
+            "statistic": None,
+            "p_value": None,
+            "significant": False,
+            "interpretation": (
+                f"Chi-square test unreliable: {cells_below_5}/{total_cells} expected cells < 5. "
+                "Increase sample size by relaxing filters."
+            ),
+            "warning": f"{cells_below_5} cells have expected count < 5.",
+        }
+
     statistic, p_value, _, _ = stats.chi2_contingency(table)
     significant = bool(p_value < 0.05)
     interpretation = (
@@ -65,7 +81,29 @@ def chi_square_test(df: pd.DataFrame, group_col: str) -> dict:
         "p_value": round(float(p_value), 4),
         "significant": significant,
         "interpretation": interpretation,
+        "warning": None,
     }
+
+
+def cross_attrition_rate(
+    df: pd.DataFrame,
+    row_col: str,
+    col_col: str,
+    min_n: int = MIN_GROUP_SIZE,
+) -> pd.DataFrame:
+    """
+    Compute attrition rate for a two-way cross-tab.
+
+    Groups with fewer than min_n employees are set to NaN so heatmaps can
+    distinguish insufficient data from a genuine 0% attrition rate.
+    """
+    grouped = df.groupby([row_col, col_col], observed=False).agg(
+        Total=("Attrition", "count"),
+        Left=("Attrition", "sum"),
+    ).reset_index()
+    grouped["Rate"] = (grouped["Left"] / grouped["Total"] * 100).round(1)
+    grouped.loc[grouped["Total"] < min_n, "Rate"] = float("nan")
+    return grouped
 
 
 def top_n_risk_groups(df: pd.DataFrame, group_col: str, n: int = 3) -> pd.DataFrame:

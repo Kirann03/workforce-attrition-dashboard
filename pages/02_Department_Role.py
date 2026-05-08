@@ -5,7 +5,7 @@ import streamlit as st
 from utils.charts import DEEP_NAVY, EXIT_SCALE, RATE_SCALE, STATUS_COLORS, polish, sankey
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
 
 
 st.set_page_config(page_title="Department & Role Analysis", page_icon="🏢", layout="wide", initial_sidebar_state="expanded")
@@ -22,28 +22,7 @@ page_header(
     ["Department selector", "Job role filter", "Benchmark line", "Hotspot callout"],
 )
 
-st.sidebar.header("Workforce Filters")
-departments = sorted(df["Department"].dropna().unique().tolist())
-selected_depts = st.sidebar.multiselect("Select Departments", departments, default=departments)
-roles = sorted(df[df["Department"].isin(selected_depts)]["JobRole"].dropna().unique().tolist())
-selected_roles = st.sidebar.multiselect("Select Job Roles", roles, default=roles)
-tenure_range = st.sidebar.slider(
-    "Years at Company",
-    int(df["YearsAtCompany"].min()),
-    int(df["YearsAtCompany"].max()),
-    (int(df["YearsAtCompany"].min()), int(df["YearsAtCompany"].max())),
-)
-overtime = st.sidebar.multiselect("OverTime", ["Yes", "No"], default=["Yes", "No"])
-travel = sorted(df["BusinessTravel"].dropna().unique().tolist())
-selected_travel = st.sidebar.multiselect("Business Travel", travel, default=travel)
-df_filtered = df[
-    df["Department"].isin(selected_depts)
-    & df["JobRole"].isin(selected_roles)
-    & df["YearsAtCompany"].between(tenure_range[0], tenure_range[1])
-    & df["OverTime"].isin(overtime)
-    & df["BusinessTravel"].isin(selected_travel)
-]
-st.sidebar.metric("Filtered Records", len(df_filtered))
+df_filtered = render_global_filters(df)
 
 if df_filtered.empty:
     st.warning("No data matches the selected filters.")

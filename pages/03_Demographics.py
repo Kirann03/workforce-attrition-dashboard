@@ -4,7 +4,7 @@ import streamlit as st
 from utils.charts import CALM_CYAN, DEEP_NAVY, RATE_SCALE, STATUS_COLORS, polish
 from utils.data_loader import load_data
 from utils.kpis import attrition_rate, chi_square_test
-from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_sidebar, section_divider
+from utils.theme import apply_theme, chart_caption, data_quality_banner, download_filtered_data, page_header, render_global_filters, render_sidebar, section_divider
 
 
 st.set_page_config(page_title="Demographic Analysis", page_icon="👥", layout="wide", initial_sidebar_state="expanded")
@@ -21,26 +21,7 @@ page_header(
     ["Age groups", "Education field", "Significance tests", "Intersectional matrix"],
 )
 
-st.sidebar.header("Workforce Filters")
-genders = sorted(df["Gender"].dropna().unique().tolist())
-departments = sorted(df["Department"].dropna().unique().tolist())
-gender_filter = st.sidebar.multiselect("Gender", genders, default=genders)
-dept_filter = st.sidebar.multiselect("Department", departments, default=departments)
-roles = sorted(df[df["Department"].isin(dept_filter)]["JobRole"].dropna().unique().tolist())
-role_filter = st.sidebar.multiselect("Job Role", roles, default=roles)
-tenure_range = st.sidebar.slider(
-    "Years at Company",
-    int(df["YearsAtCompany"].min()),
-    int(df["YearsAtCompany"].max()),
-    (int(df["YearsAtCompany"].min()), int(df["YearsAtCompany"].max())),
-)
-df_f = df[
-    df["Gender"].isin(gender_filter)
-    & df["Department"].isin(dept_filter)
-    & df["JobRole"].isin(role_filter)
-    & df["YearsAtCompany"].between(tenure_range[0], tenure_range[1])
-]
-st.sidebar.metric("Filtered Records", len(df_f))
+df_f = render_global_filters(df)
 
 if df_f.empty:
     st.warning("No data matches the selected filters.")

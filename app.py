@@ -82,6 +82,7 @@ modules = [
     ("Risk Scoring Engine", "Balanced ML model, risk tiers, performance metrics, feature drivers, and intervention matrix.", "pages/05_Risk_Score.py"),
     ("Compensation Analysis", "Pay equity, hike-performance patterns, stock-option gaps, and salary-band risk.", "pages/06_Compensation.py"),
     ("Executive Summary", "Print-ready leadership brief with KPIs, findings, charts, and recommended priority actions.", "pages/07_Executive_Summary.py"),
+    ("Cohort Analysis", "Custom two-dimensional cohort matrices, top-risk combinations, and validation.", "pages/08_Cohort_Analysis.py"),
 ]
 
 rows = [st.columns([1, 1, 1]), st.columns([1, 1, 1]), st.columns([1, 1, 1])]
@@ -89,14 +90,33 @@ for idx, (title, body, page) in enumerate(modules):
     with rows[idx // 3][idx % 3]:
         st.markdown(
             f"""
-            <div class="pan-module">
+            <div class="pan-module" style="border-left:3px solid {['#82A9C7','#ACCCD8','#313A55','#F0E2CD','#C9BDAE'][idx % 5]}">
+                <span class="pan-module-number">{idx + 1:02d}</span>
                 <strong>{title}</strong>
                 <span>{body}</span>
+                <div class="pan-module-cta">Open module -></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         st.page_link(page, label=f"Open {title}", use_container_width=True)
+
+ot_rate = df[df["OverTime"] == "Yes"]["Attrition"].mean() * 100
+non_ot_rate = df[df["OverTime"] == "No"]["Attrition"].mean() * 100
+st.markdown(
+    f"""
+    <div class="pan-ticker">
+        <div class="pan-ticker-track">
+            <span>Overall Attrition: {summary['rate']}%</span>
+            <span>Dept Hotspot: {dept_hotspot['Department']} {dept_hotspot['Rate']:.1f}%</span>
+            <span>Role Risk: {role_hotspot['JobRole']} {role_hotspot['Rate']:.1f}%</span>
+            <span>Overtime Lift: {ot_rate - non_ot_rate:+.1f} pts</span>
+            <span>Retained Employees: {summary['stayed']:,}</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.markdown("### Stakeholder Deliverables")
 d1, d2 = st.columns([1.2, 0.8])

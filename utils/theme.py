@@ -16,7 +16,7 @@ def apply_theme():
         """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
         """,
         unsafe_allow_html=True,
     )
@@ -54,7 +54,8 @@ def apply_theme():
 
         html, body, .stApp, .stMarkdown, .stMarkdown p, .stMarkdown li, .stMarkdown td,
         .stMarkdown th, .stMetric, label, input, textarea, select, button {{
-            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            font-family: "DM Sans", "Segoe UI", Arial, sans-serif;
+            font-feature-settings: "cv01", "cv03", "cv04";
             letter-spacing: 0;
         }}
 
@@ -178,7 +179,7 @@ def apply_theme():
             border-radius: 7px !important;
             color: #FFFFFF !important;
             font-weight: 600 !important;
-            max-width: 178px;
+            max-width: 238px;
         }}
 
         [data-testid="stSidebar"] [data-baseweb="tag"] span,
@@ -227,7 +228,21 @@ def apply_theme():
             border-radius: 10px;
             padding: 0.95rem 1rem;
             margin-bottom: 0.9rem;
+            overflow: hidden;
+            position: relative;
             box-shadow: var(--pan-soft-shadow);
+        }}
+
+        .pan-sidebar-brand::after {{
+            animation: shimmer 5.5s ease-in-out infinite;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            content: "";
+            height: 100%;
+            left: -65%;
+            position: absolute;
+            top: 0;
+            transform: skewX(-18deg);
+            width: 38%;
         }}
 
         .pan-brand-kicker {{
@@ -403,11 +418,17 @@ def apply_theme():
         }}
 
         div[data-testid="stPlotlyChart"] {{
-            padding: 0.95rem 1rem 0.65rem;
+            padding: 1rem 1.05rem 0.75rem;
         }}
 
         div[data-testid="stPlotlyChart"] svg {{
             border-radius: 8px;
+        }}
+
+        div[data-testid="stPlotlyChart"] .js-plotly-plot,
+        div[data-testid="stPlotlyChart"] .plot-container,
+        div[data-testid="stPlotlyChart"] .svg-container {{
+            background: #FFFFFF !important;
         }}
 
         [data-testid="stTabs"] button {{
@@ -561,6 +582,7 @@ def apply_theme():
         .pan-module {{
             min-height: 126px;
             padding: 0.95rem 1rem;
+            position: relative;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }}
 
@@ -628,6 +650,93 @@ def apply_theme():
             text-transform: uppercase;
             top: -0.65rem;
         }}
+
+        .pan-chart-footer {{
+            color: var(--pan-muted);
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            padding-left: 0.25rem;
+        }}
+
+        .pan-breadcrumb {{
+            color: var(--pan-muted);
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }}
+
+        .pan-section-pill {{
+            background: var(--pan-dark);
+            border-radius: 999px;
+            color: #FFFFFF;
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin: 0.25rem 0 0.25rem;
+            padding: 0.15rem 0.5rem;
+        }}
+
+        .pan-ticker {{
+            align-items: center;
+            background: var(--pan-dark);
+            border-radius: 8px;
+            display: flex;
+            height: 32px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }}
+
+        .pan-ticker-track {{
+            animation: ticker 28s linear infinite;
+            color: #F0E2CD;
+            display: flex;
+            font-size: 0.78rem;
+            font-weight: 700;
+            gap: 3rem;
+            letter-spacing: 0.04em;
+            padding-left: 100%;
+            white-space: nowrap;
+        }}
+
+        .pan-module-number {{
+            background: var(--pan-dark);
+            border-radius: 999px;
+            color: #FFFFFF;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.18rem 0.45rem;
+            position: absolute;
+            right: 0.75rem;
+            top: 0.75rem;
+        }}
+
+        .pan-module-cta {{
+            border-top: 1px solid var(--pan-border);
+            color: var(--pan-dark);
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-top: 0.75rem;
+            padding-top: 0.55rem;
+        }}
+
+        @keyframes ticker {{
+            0% {{ transform: translateX(0); }}
+            100% {{ transform: translateX(-50%); }}
+        }}
+
+        @keyframes shimmer {{
+            0% {{ left: -65%; }}
+            100% {{ left: 135%; }}
+        }}
+
+        @keyframes fadeSlideUp {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+
+        .pan-hero, .pan-page-head, div[data-testid="stMetric"] {{
+            animation: fadeSlideUp 0.35s ease;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -676,6 +785,7 @@ def render_sidebar():
     st.sidebar.page_link("pages/05_Risk_Score.py", label="Risk Score")
     st.sidebar.page_link("pages/06_Compensation.py", label="Compensation")
     st.sidebar.page_link("pages/07_Executive_Summary.py", label="Executive Summary")
+    st.sidebar.page_link("pages/08_Cohort_Analysis.py", label="Cohort Analysis")
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         f"""
@@ -693,7 +803,71 @@ def render_sidebar():
     st.sidebar.markdown("---")
 
 
-def page_header(eyebrow: str, title: str, subtitle: str, chips: list[str] | None = None):
+def render_global_filters(df: pd.DataFrame) -> pd.DataFrame:
+    """Render reusable sidebar filters and store the filtered frame in session state."""
+    st.sidebar.markdown("### Global Workforce Filters")
+    departments = sorted(df["Department"].dropna().unique())
+    dept_default = [dept for dept in st.session_state.get("g_depts", departments) if dept in departments] or departments
+    selected_depts = st.sidebar.multiselect("Department", departments, default=dept_default, key="g_depts")
+    roles = sorted(df[df["Department"].isin(selected_depts)]["JobRole"].dropna().unique())
+    role_default = [role for role in st.session_state.get("g_roles", roles) if role in roles] or roles
+    selected_roles = st.sidebar.multiselect(
+        "Job Role",
+        roles,
+        default=role_default,
+        key="g_roles",
+    )
+    tenure_min = int(df["YearsAtCompany"].min())
+    tenure_max = int(df["YearsAtCompany"].max())
+    prior_tenure = st.session_state.get("g_tenure", (tenure_min, tenure_max))
+    tenure_default = (max(tenure_min, prior_tenure[0]), min(tenure_max, prior_tenure[1]))
+    tenure_range = st.sidebar.slider(
+        "Years at Company",
+        tenure_min,
+        tenure_max,
+        value=tenure_default,
+        key="g_tenure",
+    )
+    overtime_options = ["Yes", "No"]
+    overtime_default = [item for item in st.session_state.get("g_overtime", overtime_options) if item in overtime_options] or overtime_options
+    overtime = st.sidebar.multiselect("OverTime", overtime_options, default=overtime_default, key="g_overtime")
+    travel = sorted(df["BusinessTravel"].dropna().unique())
+    travel_default = [item for item in st.session_state.get("g_travel", travel) if item in travel] or travel
+    selected_travel = st.sidebar.multiselect("Business Travel", travel, default=travel_default, key="g_travel")
+    gender = sorted(df["Gender"].dropna().unique())
+    gender_default = [item for item in st.session_state.get("g_gender", gender) if item in gender] or gender
+    selected_gender = st.sidebar.multiselect("Gender", gender, default=gender_default, key="g_gender")
+    filtered = df[
+        df["Department"].isin(selected_depts)
+        & df["JobRole"].isin(selected_roles)
+        & df["YearsAtCompany"].between(tenure_range[0], tenure_range[1])
+        & df["OverTime"].isin(overtime)
+        & df["BusinessTravel"].isin(selected_travel)
+        & df["Gender"].isin(selected_gender)
+    ]
+    st.sidebar.markdown("---")
+    pct = len(filtered) / len(df) * 100 if len(df) else 0
+    st.sidebar.metric("Filtered Records", f"{len(filtered):,}", delta=f"{pct:.0f}% of workforce")
+    baseline = df["Attrition"].mean() * 100
+    filtered_rate = filtered["Attrition"].mean() * 100 if len(filtered) else 0
+    st.sidebar.metric("Filtered Attrition Rate", f"{filtered_rate:.1f}%", delta=f"{filtered_rate - baseline:+.1f}% vs baseline", delta_color="inverse")
+    if len(filtered) < 30:
+        st.sidebar.warning("Small sample - statistical results may be unreliable.")
+    st.session_state["filtered_df"] = filtered
+    return filtered
+
+
+def breadcrumb(label: str) -> None:
+    """Render a page breadcrumb."""
+    st.markdown(f'<div class="pan-breadcrumb">Command Center &gt; {label}</div>', unsafe_allow_html=True)
+
+
+def section_badge(number: int) -> None:
+    """Render a compact section counter pill."""
+    st.markdown(f'<span class="pan-section-pill">{number:02d}</span>', unsafe_allow_html=True)
+
+
+def page_header(eyebrow: str, title: str, subtitle: str, chips: list[str] | None = None) -> None:
     chips_html = ""
     if chips:
         chips_html = '<div class="pan-chip-row">' + "".join(f'<span class="pan-chip">{chip}</span>' for chip in chips) + "</div>"
@@ -710,7 +884,7 @@ def page_header(eyebrow: str, title: str, subtitle: str, chips: list[str] | None
     )
 
 
-def hero(title: str, subtitle: str, eyebrow: str = "Palo Alto Networks"):
+def hero(title: str, subtitle: str, eyebrow: str = "Palo Alto Networks") -> None:
     st.markdown(
         f"""
         <section class="pan-hero">
@@ -723,7 +897,7 @@ def hero(title: str, subtitle: str, eyebrow: str = "Palo Alto Networks"):
     )
 
 
-def insight_card(title: str, body: str, icon: str = "Insight"):
+def insight_card(title: str, body: str, icon: str = "Insight") -> None:
     st.markdown(
         f"""
         <div class="pan-insight">
@@ -735,7 +909,7 @@ def insight_card(title: str, body: str, icon: str = "Insight"):
     )
 
 
-def alert_card(body: str):
+def alert_card(body: str) -> None:
     st.markdown(f'<div class="pan-alert">{body}</div>', unsafe_allow_html=True)
 
 
@@ -752,7 +926,7 @@ def risk_badge(rate: float, baseline: float) -> str:
     return f'<span class="pan-risk-badge" style="background:{color};">{label}</span>'
 
 
-def data_quality_banner(df: pd.DataFrame):
+def data_quality_banner(df: pd.DataFrame) -> None:
     nulls = int(df.isna().sum().sum())
     duplicate_count = int(df["EmployeeNumber"].duplicated().sum()) if "EmployeeNumber" in df.columns else 0
     attrition_ok = pd.api.types.is_integer_dtype(df["Attrition"])
@@ -765,19 +939,19 @@ def data_quality_banner(df: pd.DataFrame):
         )
 
 
-def section_divider(label: str = ""):
+def section_divider(label: str = "") -> None:
     label_html = f"<span>{label}</span>" if label else "<span></span>"
     st.markdown(f'<div class="pan-divider">{label_html}</div>', unsafe_allow_html=True)
 
 
-def chart_caption(n: int, suffix: str = ""):
+def chart_caption(n: int, suffix: str = "") -> None:
     caption = f"Source: Palo Alto Networks HR Dataset | n = {n:,}"
     if suffix:
         caption += f" | {suffix}"
-    st.caption(caption)
+    st.markdown(f'<div class="pan-chart-footer">{caption}</div>', unsafe_allow_html=True)
 
 
-def download_filtered_data(df: pd.DataFrame, filename: str):
+def download_filtered_data(df: pd.DataFrame, filename: str) -> None:
     with st.expander("Download Filtered Data"):
         st.download_button(
             "Download CSV",
